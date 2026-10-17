@@ -5,6 +5,7 @@
     @can('use-shop-floor')
         <x-nav-link :href="route('shop-floor.index')" :active="request()->routeIs('shop-floor.*')">Shop floor</x-nav-link>
     @endcan
+    <x-nav-link :href="route('production-orders.index')" :active="request()->routeIs('production-orders.*')">Production orders</x-nav-link>
 </div>
 
 @can('viewAny', App\Models\Customer::class)

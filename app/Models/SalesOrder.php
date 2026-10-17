@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property-read Customer $customer
  * @property-read User|null $creator
  * @property-read \Illuminate\Database\Eloquent\Collection<int, SalesOrderLine> $lines
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProductionOrder> $productionOrders
  */
 #[Fillable(['number', 'customer_id', 'status', 'order_date', 'due_date', 'total', 'notes', 'created_by', 'pdf_path', 'pdf_generated_at'])]
 class SalesOrder extends Model
@@ -70,6 +71,14 @@ class SalesOrder extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(SalesOrderLine::class);
+    }
+
+    /**
+     * @return HasMany<ProductionOrder, $this>
+     */
+    public function productionOrders(): HasMany
+    {
+        return $this->hasMany(ProductionOrder::class);
     }
 
     /**

@@ -86,7 +86,7 @@
                 </tr>
             </x-table>
 
-            @includeIf('sales-orders._production', ['order' => $order])
+            @include('sales-orders._production')
         </div>
 
         <div class="space-y-6">

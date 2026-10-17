@@ -6,6 +6,13 @@ namespace App\Providers;
 
 use App\Domain\Inventory\Events\StockBelowMinimum;
 use App\Domain\Inventory\Listeners\NotifyPlannersOfLowStock;
+use App\Domain\Production\Events\ProductionOrderCompleted;
+use App\Domain\Production\Events\StepCompleted;
+use App\Domain\Production\Events\StepStarted;
+use App\Domain\Production\Listeners\AdvanceProductionOrder;
+use App\Domain\Production\Listeners\ConsumeStepMaterials;
+use App\Domain\Production\Listeners\MarkProductionStarted;
+use App\Domain\Production\Listeners\UpdateSalesOrderProgress;
 use App\Domain\Sales\Events\SalesOrderConfirmed;
 use App\Domain\Sales\Events\SalesOrderShipped;
 use App\Domain\Sales\Listeners\QueueSalesOrderPdf;
@@ -13,6 +20,8 @@ use App\Enums\UserRole;
 use App\Models\Customer;
 use App\Models\Material;
 use App\Models\Product;
+use App\Models\ProductionOrder;
+use App\Models\ProductionOrderStep;
 use App\Models\SalesOrder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +53,8 @@ class AppServiceProvider extends ServiceProvider
             'material' => Material::class,
             'product' => Product::class,
             'sales_order' => SalesOrder::class,
+            'production_order' => ProductionOrder::class,
+            'production_order_step' => ProductionOrderStep::class,
         ]);
 
         $this->defineGates();
@@ -57,6 +68,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::listen(StockBelowMinimum::class, NotifyPlannersOfLowStock::class);
         Event::listen([SalesOrderConfirmed::class, SalesOrderShipped::class], QueueSalesOrderPdf::class);
+
+        // Production events run inside the step transaction; registration order is execution order.
+        Event::listen(StepStarted::class, MarkProductionStarted::class);
+        Event::listen(StepCompleted::class, ConsumeStepMaterials::class);
+        Event::listen(StepCompleted::class, AdvanceProductionOrder::class);
+        Event::listen(ProductionOrderCompleted::class, UpdateSalesOrderProgress::class);
     }
 
     /**

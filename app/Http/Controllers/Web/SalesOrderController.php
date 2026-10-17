@@ -64,7 +64,13 @@ class SalesOrderController extends Controller
         $this->authorize('view', $salesOrder);
 
         return view('sales-orders.show', [
-            'order' => $salesOrder->load(['customer', 'creator', 'lines.product.material']),
+            'order' => $salesOrder->load([
+                'customer',
+                'creator',
+                'lines.product.material',
+                'productionOrders.product',
+                'productionOrders.steps:id,production_order_id,status',
+            ]),
         ]);
     }
 

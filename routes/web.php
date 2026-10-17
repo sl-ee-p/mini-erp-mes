@@ -9,6 +9,8 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\MaterialController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\ProductionOrderController;
+use App\Http\Controllers\Web\ProductionStepController;
 use App\Http\Controllers\Web\SalesOrderController;
 use App\Http\Controllers\Web\SalesOrderPdfController;
 use App\Http\Controllers\Web\SalesOrderWorkflowController;
@@ -39,6 +41,13 @@ Route::middleware('auth')->group(function (): void {
     });
     Route::post('sales-orders/{sales_order}/pdf', [SalesOrderPdfController::class, 'store'])->name('sales-orders.pdf.store');
     Route::get('sales-orders/{sales_order}/pdf', [SalesOrderPdfController::class, 'show'])->name('sales-orders.pdf.show');
+
+    Route::resource('production-orders', ProductionOrderController::class)->only(['index', 'show']);
+    Route::controller(ProductionStepController::class)->prefix('production-steps/{step}')->name('production-steps.')->group(function (): void {
+        Route::post('start', 'start')->name('start');
+        Route::post('pause', 'pause')->name('pause');
+        Route::post('complete', 'complete')->name('complete');
+    });
 
     Route::resource('products', ProductController::class)->except('destroy');
     Route::resource('materials', MaterialController::class)->except('destroy');
