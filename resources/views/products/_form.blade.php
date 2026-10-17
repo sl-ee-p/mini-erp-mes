@@ -85,7 +85,8 @@
                            class="block w-28 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                     <input type="hidden" :name="`routing[${index}][consumes_materials]`" :value="step.consumes_materials ? 1 : 0">
                     <label class="inline-flex items-center gap-1 text-xs text-stone-600">
-                        <input type="checkbox" x-model="step.consumes_materials" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500">
+                        <input type="checkbox" x-model="step.consumes_materials" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500"
+                               @change="if (step.consumes_materials) routing.forEach((other, i) => { if (i !== index) other.consumes_materials = false })">
                         Consumes BOM
                     </label>
                     <div class="flex">
@@ -96,7 +97,7 @@
                 </div>
             </template>
         </div>
-        <p class="mt-3 text-xs text-stone-500">Materials are consumed from stock when a flagged step is completed. If none is flagged, the first step consumes them.</p>
+        <p class="mt-3 text-xs text-stone-500">The whole bill of materials is consumed from stock when the flagged step is completed. If no step is flagged, the first step consumes it.</p>
         @foreach ($errors->get('routing.*') as $messages)
             <p class="mt-1 text-xs text-red-600">{{ $messages[0] }}</p>
         @endforeach

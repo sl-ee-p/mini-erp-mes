@@ -84,13 +84,14 @@ class SaveProduct
 
     /**
      * Steps are renumbered 10, 20, 30… so an extra step can be slotted in later without renumbering.
-     * If no step is flagged to consume materials, the first step does.
+     * Exactly one step consumes the bill of materials: the first flagged one, or the first step if none is.
      *
      * @param  list<RoutingLine>  $steps
      */
     private function syncRouting(Product $product, array $steps): void
     {
-        $anyConsumes = collect($steps)->contains(fn (array $step): bool => (bool) ($step['consumes_materials'] ?? false));
+        $consumingIndex = collect($steps)->search(fn (array $step): bool => (bool) ($step['consumes_materials'] ?? false));
+        $consumingIndex = $consumingIndex === false ? 0 : $consumingIndex;
 
         $product->routingSteps()->delete();
 
@@ -99,7 +100,7 @@ class SaveProduct
             'work_center_id' => $step['work_center_id'],
             'name' => $step['name'],
             'planned_minutes_per_unit' => $step['planned_minutes_per_unit'],
-            'consumes_materials' => $anyConsumes ? (bool) ($step['consumes_materials'] ?? false) : $index === 0,
+            'consumes_materials' => $index === $consumingIndex,
         ], $steps, array_keys($steps)));
     }
 }

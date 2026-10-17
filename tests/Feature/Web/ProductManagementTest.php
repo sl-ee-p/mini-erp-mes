@@ -58,6 +58,21 @@ class ProductManagementTest extends TestCase
             ->assertSessionHasErrors(['bom.0.material_id', 'bom.1.material_id', 'bom.2.material_id']);
     }
 
+    public function test_only_one_step_may_consume_the_bill_of_materials(): void
+    {
+        $workCenter = WorkCenter::factory()->create();
+
+        $this->actingAs(User::factory()->planner()->create())
+            ->post(route('products.store'), [
+                'sku' => 'FG-Z', 'name' => 'Z', 'price' => 1,
+                'routing' => [
+                    ['work_center_id' => $workCenter->id, 'name' => 'A', 'planned_minutes_per_unit' => 5, 'consumes_materials' => 1],
+                    ['work_center_id' => $workCenter->id, 'name' => 'B', 'planned_minutes_per_unit' => 5, 'consumes_materials' => 1],
+                ],
+            ])
+            ->assertSessionHasErrors('routing');
+    }
+
     public function test_routing_needs_at_least_one_step(): void
     {
         $this->actingAs(User::factory()->planner()->create())

@@ -11,6 +11,7 @@ use App\Models\WorkCenter;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class ProductRequest extends FormRequest
 {
@@ -51,6 +52,25 @@ class ProductRequest extends FormRequest
             'routing.*.name' => ['required', 'string', 'max:100'],
             'routing.*.planned_minutes_per_unit' => ['required', 'numeric', 'gt:0', 'max:10000'],
             'routing.*.consumes_materials' => ['boolean'],
+        ];
+    }
+
+    /**
+     * The bill of materials is consumed once, so at most one routing step may be flagged.
+     *
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $flagged = collect((array) $this->input('routing', []))
+                    ->filter(fn ($step) => is_array($step) && filter_var($step['consumes_materials'] ?? false, FILTER_VALIDATE_BOOLEAN));
+
+                if ($flagged->count() > 1) {
+                    $validator->errors()->add('routing', 'Only one routing step can consume the bill of materials.');
+                }
+            },
         ];
     }
 
