@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Web;
+
+use App\Models\Customer;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class CustomerManagementTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_sales_can_search_customers_with_pagination(): void
+    {
+        Customer::factory()->create(['name' => 'Lakeside Interiors', 'city' => 'Como']);
+        Customer::factory()->count(25)->create();
+
+        $this->actingAs(User::factory()->sales()->create())
+            ->get(route('customers.index', ['search' => 'Como']))
+            ->assertOk()
+            ->assertSee('Lakeside Interiors')
+            ->assertViewHas('customers', fn ($customers) => $customers->total() === 1);
+    }
+
+    public function test_sales_can_create_a_customer_with_normalised_code(): void
+    {
+        $this->actingAs(User::factory()->sales()->create())
+            ->post(route('customers.store'), [
+                'code' => 'c-lake',
+                'name' => 'Lakeside Interiors',
+                'email' => 'orders@lakeside.test',
+                'country' => 'it',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('customers', ['code' => 'C-LAKE', 'country' => 'IT']);
+    }
+
+    public function test_customer_code_must_be_unique(): void
+    {
+        $existing = Customer::factory()->create();
+
+        $this->actingAs(User::factory()->sales()->create())
+            ->post(route('customers.store'), ['code' => $existing->code, 'name' => 'Dup', 'country' => 'IT'])
+            ->assertSessionHasErrors('code');
+    }
+
+    public function test_sales_can_update_and_delete_a_customer(): void
+    {
+        $sales = User::factory()->sales()->create();
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($sales)
+            ->put(route('customers.update', $customer), [...$customer->only(['code', 'country']), 'name' => 'Renamed Ltd'])
+            ->assertRedirect(route('customers.show', $customer));
+        $this->assertSame('Renamed Ltd', $customer->fresh()?->name);
+
+        $this->actingAs($sales)->delete(route('customers.destroy', $customer))->assertRedirect(route('customers.index'));
+        $this->assertModelMissing($customer);
+    }
+
+    public function test_planner_can_view_but_not_edit_customers(): void
+    {
+        $planner = User::factory()->planner()->create();
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($planner)->get(route('customers.show', $customer))->assertOk()->assertDontSee('Delete');
+        $this->actingAs($planner)->get(route('customers.edit', $customer))->assertForbidden();
+        $this->actingAs($planner)->put(route('customers.update', $customer), ['code' => 'X', 'name' => 'X', 'country' => 'IT'])->assertForbidden();
+    }
+
+    public function test_operator_cannot_access_customers(): void
+    {
+        $this->actingAs(User::factory()->operator()->create())
+            ->get(route('customers.index'))
+            ->assertForbidden();
+    }
+}
