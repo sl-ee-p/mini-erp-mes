@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('required_qty', 12, 3);
             $table->decimal('consumed_qty', 12, 3)->default(0);
             $table->timestamps();
-            $table->unique(['production_order_id', 'material_id']);
+            $table->unique(['production_order_id', 'material_id'], 'prod_order_materials_order_material_unique');
         });
     }
 
