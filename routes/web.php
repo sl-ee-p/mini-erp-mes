@@ -9,6 +9,9 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\MaterialController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\SalesOrderController;
+use App\Http\Controllers\Web\SalesOrderPdfController;
+use App\Http\Controllers\Web\SalesOrderWorkflowController;
 use App\Http\Controllers\Web\ShopFloorController;
 use App\Http\Controllers\Web\StockMovementController;
 use App\Http\Controllers\Web\UserController;
@@ -27,6 +30,16 @@ Route::middleware('auth')->group(function (): void {
     Route::get('shop-floor', [ShopFloorController::class, 'index'])->middleware('can:use-shop-floor')->name('shop-floor.index');
 
     Route::resource('customers', CustomerController::class);
+
+    Route::resource('sales-orders', SalesOrderController::class)->except('destroy');
+    Route::controller(SalesOrderWorkflowController::class)->prefix('sales-orders/{sales_order}')->name('sales-orders.')->group(function (): void {
+        Route::post('confirm', 'confirm')->name('confirm');
+        Route::post('cancel', 'cancel')->name('cancel');
+        Route::post('ship', 'ship')->name('ship');
+    });
+    Route::post('sales-orders/{sales_order}/pdf', [SalesOrderPdfController::class, 'store'])->name('sales-orders.pdf.store');
+    Route::get('sales-orders/{sales_order}/pdf', [SalesOrderPdfController::class, 'show'])->name('sales-orders.pdf.show');
+
     Route::resource('products', ProductController::class)->except('destroy');
     Route::resource('materials', MaterialController::class)->except('destroy');
 

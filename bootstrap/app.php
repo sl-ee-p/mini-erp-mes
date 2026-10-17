@@ -21,4 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Business-rule violations (invalid status transition, insufficient stock…) are user errors, not crashes.
+        $exceptions->render(function (DomainException $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+
+            return back()->withInput()->with('error', $exception->getMessage());
+        });
     })->create();

@@ -10,6 +10,7 @@
 @can('viewAny', App\Models\Customer::class)
     <div class="space-y-1">
         <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-500">Sales</p>
+        <x-nav-link :href="route('sales-orders.index')" :active="request()->routeIs('sales-orders.*')">Sales orders</x-nav-link>
         <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">Customers</x-nav-link>
     </div>
 @endcan

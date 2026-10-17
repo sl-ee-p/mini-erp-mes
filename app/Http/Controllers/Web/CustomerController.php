@@ -44,7 +44,10 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
-        return view('customers.show', ['customer' => $customer]);
+        return view('customers.show', [
+            'customer' => $customer,
+            'orders' => $customer->salesOrders()->latest('id')->limit(10)->get(),
+        ]);
     }
 
     public function edit(Customer $customer): View
@@ -64,6 +67,10 @@ class CustomerController extends Controller
     public function destroy(Customer $customer): RedirectResponse
     {
         $this->authorize('delete', $customer);
+
+        if ($customer->salesOrders()->exists()) {
+            return back()->with('error', 'Customers with sales orders cannot be deleted.');
+        }
 
         $customer->delete();
 

@@ -6,10 +6,14 @@ namespace App\Providers;
 
 use App\Domain\Inventory\Events\StockBelowMinimum;
 use App\Domain\Inventory\Listeners\NotifyPlannersOfLowStock;
+use App\Domain\Sales\Events\SalesOrderConfirmed;
+use App\Domain\Sales\Events\SalesOrderShipped;
+use App\Domain\Sales\Listeners\QueueSalesOrderPdf;
 use App\Enums\UserRole;
 use App\Models\Customer;
 use App\Models\Material;
 use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -39,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'material' => Material::class,
             'product' => Product::class,
+            'sales_order' => SalesOrder::class,
         ]);
 
         $this->defineGates();
@@ -51,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
     private function registerDomainListeners(): void
     {
         Event::listen(StockBelowMinimum::class, NotifyPlannersOfLowStock::class);
+        Event::listen([SalesOrderConfirmed::class, SalesOrderShipped::class], QueueSalesOrderPdf::class);
     }
 
     /**

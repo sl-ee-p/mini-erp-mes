@@ -31,5 +31,27 @@
                 @endif
             </dl>
         </x-card>
+
+        <div class="lg:col-span-2">
+            <x-card title="Recent sales orders" :padding="false">
+                <x-slot:headerActions>
+                    @can('create', App\Models\SalesOrder::class)
+                        <x-button size="sm" :href="route('sales-orders.create', ['customer_id' => $customer->id])">New order</x-button>
+                    @endcan
+                </x-slot:headerActions>
+                <ul class="divide-y divide-stone-100 text-sm">
+                    @forelse ($orders as $order)
+                        <li class="flex items-center justify-between gap-4 px-5 py-3">
+                            <a href="{{ route('sales-orders.show', $order) }}" class="font-mono text-xs font-semibold text-brand-700 hover:underline">{{ $order->number }}</a>
+                            <x-badge :color="$order->status->color()">{{ $order->status->label() }}</x-badge>
+                            <span class="text-stone-500">Due {{ $order->due_date->format('d M Y') }}</span>
+                            <span class="tabular-nums">{{ App\Support\Format::money($order->total) }}</span>
+                        </li>
+                    @empty
+                        <li class="px-5 py-6 text-center text-stone-500">No orders yet.</li>
+                    @endforelse
+                </ul>
+            </x-card>
+        </div>
     </div>
 </x-layouts.app>
