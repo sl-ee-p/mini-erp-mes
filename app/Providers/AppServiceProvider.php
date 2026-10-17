@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Inventory\Events\StockBelowMinimum;
+use App\Domain\Inventory\Listeners\NotifyPlannersOfLowStock;
 use App\Enums\UserRole;
+use App\Models\Customer;
+use App\Models\Material;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,7 +34,23 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::shouldBeStrict(! $this->app->isProduction());
 
+        Relation::enforceMorphMap([
+            'user' => User::class,
+            'customer' => Customer::class,
+            'material' => Material::class,
+            'product' => Product::class,
+        ]);
+
         $this->defineGates();
+        $this->registerDomainListeners();
+    }
+
+    /**
+     * Domain listeners live outside app/Listeners, so they are wired explicitly in one place.
+     */
+    private function registerDomainListeners(): void
+    {
+        Event::listen(StockBelowMinimum::class, NotifyPlannersOfLowStock::class);
     }
 
     /**

@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\Auth\LoginController;
+use App\Http\Controllers\Web\CustomerController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\MaterialController;
+use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ShopFloorController;
+use App\Http\Controllers\Web\StockMovementController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,5 +26,13 @@ Route::middleware('auth')->group(function (): void {
     Route::get('dashboard', DashboardController::class)->middleware('can:view-dashboard')->name('dashboard');
     Route::get('shop-floor', [ShopFloorController::class, 'index'])->middleware('can:use-shop-floor')->name('shop-floor.index');
 
+    Route::resource('customers', CustomerController::class);
+    Route::resource('products', ProductController::class)->except('destroy');
+    Route::resource('materials', MaterialController::class)->except('destroy');
+
+    Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
+    Route::post('materials/{material}/stock-movements', [StockMovementController::class, 'store'])->name('materials.stock-movements.store');
+
     Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-logs.index');
 });
