@@ -50,3 +50,8 @@ RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoload
 COPY --from=assets /app/public/build ./public/build
 USER www-data
 CMD ["php-fpm"]
+
+# ---------- Web: nginx with the app's public/ baked in, so assets always match the PHP image ----------
+FROM nginx:1.27-alpine AS web
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=prod /var/www/html/public /var/www/html/public
