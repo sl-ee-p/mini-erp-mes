@@ -1,9 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "oakline/mini-erp-mes",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Mini ERP/MES for a fictional furniture workshop: sales orders, production, inventory and shop-floor tracking.",
+    "keywords": [
+        "laravel",
+        "erp",
+        "mes",
+        "manufacturing",
+        "portfolio"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
@@ -12,6 +18,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.13",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
@@ -65,6 +72,17 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "lint": [
+            "pint"
+        ],
+        "analyse": [
+            "phpstan analyse --memory-limit=1G"
+        ],
+        "ci": [
+            "pint --test",
+            "@analyse",
+            "@test"
         ]
     },
     "extra": {
