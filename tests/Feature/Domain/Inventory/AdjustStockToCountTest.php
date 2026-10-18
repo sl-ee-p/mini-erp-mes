@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Domain\Inventory;
 
 use App\Domain\Inventory\Actions\AdjustStockToCount;
+use App\Domain\Inventory\Actions\RecordStockMovement;
 use App\Domain\Inventory\Enums\StockMovementType;
 use App\Models\Material;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +35,19 @@ class AdjustStockToCountTest extends TestCase
         $movement = app(AdjustStockToCount::class)->execute($material, 6, 'Found on shelf B');
 
         $this->assertSame(2.0, $movement?->quantity);
+    }
+
+    public function test_count_is_reconciled_against_the_current_balance_not_a_stale_copy(): void
+    {
+        $material = Material::factory()->stocked(20)->create();
+        // Someone issues 5 units after the count form was loaded with a balance of 20.
+        app(RecordStockMovement::class)->execute(Material::findOrFail($material->id), StockMovementType::Out, 5, 'Issued');
+
+        $movement = app(AdjustStockToCount::class)->execute($material, 17, 'Count');
+
+        $this->assertSame(2.0, $movement?->quantity);
+        $this->assertSame(17.0, $material->fresh()?->stock_qty);
+        $this->assertSame(17.0, $material->stock_qty);
     }
 
     public function test_matching_count_records_nothing(): void
