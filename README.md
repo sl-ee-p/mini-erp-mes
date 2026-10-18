@@ -39,20 +39,20 @@ All use the password `password`.
 | Administrator | admin@oakline.test | Dashboard |
 | Production planner | planner@oakline.test | Dashboard |
 | Shop-floor operator | operator@oakline.test | Shop floor |
-| Sales | sales@oakline.test | Sales orders |
+| Sales | sales@oakline.test | Dashboard |
 
 ## Features
 
 - **Sales**: customers, sales orders (draft → confirmed → shipped / cancelled), gap-free document numbers, order confirmation PDFs generated in a queued job.
 - **Catalog**: products with a bill of materials and a production routing across work centers.
-- **Production**: confirming a sales order releases one production order per line. Operators start, pause and complete steps; time is logged and material is consumed automatically.
+- **Production**: confirming a sales order releases one production order per line. Operators start, pause and complete steps; time is logged and material is consumed automatically. A running step can only be paused or completed by the operator working on it, or by a planner.
 - **Inventory**: stock ledger, manual adjustments, low-stock alerts.
 - **Administration**: user management with four roles, and an audit log recording model changes with user, IP and before/after values.
 
 ## Quality
 
 ```bash
-composer test          # PHPUnit (195 tests)
+composer test          # PHPUnit
 vendor/bin/pint --test # code style
 vendor/bin/phpstan analyse # Larastan level 6
 ```
