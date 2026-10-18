@@ -90,4 +90,18 @@ class AuthenticationTest extends TestCase
             ->get(route('home'))
             ->assertRedirect(route('dashboard'));
     }
+
+    public function test_deactivated_user_is_signed_out_on_next_request(): void
+    {
+        $user = User::factory()->sales()->create();
+        $this->actingAs($user)->get(route('sales-orders.index'))->assertOk();
+
+        $user->update(['is_active' => false]);
+
+        $this->get(route('sales-orders.index'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+    }
 }
