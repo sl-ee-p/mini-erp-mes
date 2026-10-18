@@ -22,11 +22,14 @@ class UpdateSalesOrder
      */
     public function execute(SalesOrder $order, array $data): SalesOrder
     {
-        if (! $order->isEditable()) {
-            throw SalesOrderException::notEditable($order);
-        }
-
         return DB::transaction(function () use ($order, $data): SalesOrder {
+            // Lock before checking, so a concurrent confirmation cannot slip in between the check and the line rewrite.
+            $order = SalesOrder::query()->lockForUpdate()->findOrFail($order->id);
+
+            if (! $order->isEditable()) {
+                throw SalesOrderException::notEditable($order);
+            }
+
             $order->update([
                 'customer_id' => $data['customer_id'],
                 'due_date' => $data['due_date'],

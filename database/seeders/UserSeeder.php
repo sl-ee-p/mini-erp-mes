@@ -24,11 +24,12 @@ class UserSeeder extends Seeder
             ['name' => 'Ines Duarte', 'email' => 'ines@oakline.test', 'role' => UserRole::Operator],
         ];
 
+        // No factories here: Faker is a dev dependency and is not installed in the production image.
         foreach ($accounts as $account) {
-            User::factory()->role($account['role'])->create([
-                'name' => $account['name'],
-                'email' => $account['email'],
-            ]);
+            User::query()->firstOrCreate(
+                ['email' => $account['email']],
+                ['name' => $account['name'], 'role' => $account['role'], 'password' => 'password', 'is_active' => true],
+            );
         }
     }
 }

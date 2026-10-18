@@ -20,6 +20,16 @@ docker compose exec app php artisan db:seed
 
 Without Docker: `composer setup && php artisan db:seed && composer dev` (SQLite by default).
 
+### Demo data on the deployed server
+
+The deploy job migrates but never seeds. To load the demo workshop once on the home server:
+
+```bash
+docker exec mini-erp-mes-app-1 php artisan db:seed --force
+```
+
+The app is then at `http://<server-ip>:8081`.
+
 ### Demo accounts
 
 All use the password `password`.
@@ -42,7 +52,7 @@ All use the password `password`.
 ## Quality
 
 ```bash
-composer test          # PHPUnit (191 tests)
+composer test          # PHPUnit (195 tests)
 vendor/bin/pint --test # code style
 vendor/bin/phpstan analyse # Larastan level 6
 ```

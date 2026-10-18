@@ -208,6 +208,22 @@ class StepExecutionTest extends TestCase
         $this->assertSame(ProductionOrderStatus::Cancelled, $productionOrder->fresh()?->status);
     }
 
+    public function test_steps_of_a_cancelled_production_order_cannot_be_started(): void
+    {
+        $productionOrder = $this->releaseProductionOrder();
+        app(CancelSalesOrder::class)->execute($productionOrder->salesOrder);
+
+        try {
+            app(StartStep::class)->execute($productionOrder->steps[0], $this->operator);
+            $this->fail('Starting a step of a cancelled production order should be refused.');
+        } catch (ProductionException $exception) {
+            $this->assertStringContainsString('is cancelled', $exception->getMessage());
+        }
+
+        $this->assertSame(StepStatus::Pending, $productionOrder->steps[0]->fresh()?->status);
+        $this->assertDatabaseCount('step_time_logs', 0);
+    }
+
     public function test_sales_order_cannot_be_cancelled_once_production_started(): void
     {
         $productionOrder = $this->releaseProductionOrder();
