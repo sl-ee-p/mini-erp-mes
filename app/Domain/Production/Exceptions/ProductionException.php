@@ -33,6 +33,13 @@ class ProductionException extends DomainException
         return new self("You are already working on “{$runningStep->name}” ({$runningStep->productionOrder->number}). Pause or complete it first.");
     }
 
+    public static function stepRunByAnotherOperator(ProductionOrderStep $step): self
+    {
+        $operator = $step->openTimeLog?->user->name ?? 'another operator';
+
+        return new self("“{$step->name}” is being worked on by {$operator}; only they or a planner can pause or complete it.");
+    }
+
     public static function scrapExceedsInput(ProductionOrderStep $step, int $scrap): self
     {
         return new self("Scrap ({$scrap}) cannot exceed the {$step->input_qty} units processed at “{$step->name}”.");

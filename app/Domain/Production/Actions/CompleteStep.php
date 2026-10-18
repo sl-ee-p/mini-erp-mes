@@ -24,6 +24,10 @@ class CompleteStep
         return $this->withLockedStep($step, function (ProductionOrderStep $step) use ($operator, $scrapQty): ProductionOrderStep {
             $step->status->assertCanTransitionTo(StepStatus::Completed, "Step “{$step->name}”");
 
+            if (! $step->canBeStoppedBy($operator)) {
+                throw ProductionException::stepRunByAnotherOperator($step);
+            }
+
             if ($scrapQty < 0 || $scrapQty > (int) $step->input_qty) {
                 throw ProductionException::scrapExceedsInput($step, $scrapQty);
             }

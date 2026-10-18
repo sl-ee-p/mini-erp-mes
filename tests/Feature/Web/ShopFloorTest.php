@@ -44,6 +44,30 @@ class ShopFloorTest extends TestCase
             ->assertSee('Complete');
     }
 
+    public function test_colleagues_cannot_stop_a_step_another_operator_is_running(): void
+    {
+        $productionOrder = $this->releaseProductionOrder();
+        $step = $productionOrder->steps[0];
+        app(StartStep::class)->execute($step, User::factory()->operator()->create(['name' => 'Marta Rossi']));
+        $colleague = User::factory()->operator()->create();
+
+        $this->actingAs($colleague)->get(route('shop-floor.index'))
+            ->assertOk()
+            ->assertSee('In progress by Marta Rossi')
+            ->assertDontSee(route('production-steps.pause', $step))
+            ->assertDontSee(route('production-steps.complete', $step));
+
+        $this->actingAs($colleague)
+            ->from(route('shop-floor.index'))
+            ->post(route('production-steps.pause', $step))
+            ->assertRedirect(route('shop-floor.index'))
+            ->assertSessionHas('error', fn (string $message) => str_contains($message, 'being worked on by Marta Rossi'));
+
+        $this->actingAs(User::factory()->planner()->create())->get(route('production-orders.show', $productionOrder))
+            ->assertOk()
+            ->assertSee(route('production-steps.pause', $step));
+    }
+
     public function test_business_rule_violations_are_shown_to_the_operator(): void
     {
         $productionOrder = $this->releaseProductionOrder();

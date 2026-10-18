@@ -28,11 +28,11 @@ class ProductionStepController extends Controller
         return back()->with('success', "Started “{$step->name}”.");
     }
 
-    public function pause(ProductionOrderStep $step, PauseStep $pauseStep): RedirectResponse
+    public function pause(Request $request, ProductionOrderStep $step, PauseStep $pauseStep): RedirectResponse
     {
         $this->authorize('use-shop-floor');
 
-        $pauseStep->execute($step);
+        $pauseStep->execute($step, $this->operator($request));
 
         return back()->with('success', "Paused “{$step->name}”.");
     }
