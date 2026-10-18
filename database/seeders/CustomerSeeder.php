@@ -33,8 +33,7 @@ class CustomerSeeder extends Seeder
         ];
 
         foreach ($customers as [$code, $name, $city, $country]) {
-            Customer::factory()->create([
-                'code' => $code,
+            Customer::query()->firstOrCreate(['code' => $code], [
                 'name' => $name,
                 'city' => $city,
                 'country' => $country,
