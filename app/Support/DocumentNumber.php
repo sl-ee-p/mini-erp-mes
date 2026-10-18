@@ -19,13 +19,15 @@ class DocumentNumber
         $year ??= (int) now()->format('Y');
 
         return DB::transaction(function () use ($prefix, $year): string {
-            DB::table('document_sequences')->insertOrIgnore(['prefix' => $prefix, 'year' => $year, 'last_number' => 0]);
+            // Lock first and only insert when the counter does not exist yet. Inserting unconditionally
+            // (INSERT IGNORE) takes a shared lock on the existing row in MySQL; two requests holding it and both
+            // asking for the exclusive lock below would deadlock on every concurrent document.
+            $sequence = $this->lockSequence($prefix, $year);
 
-            $sequence = DB::table('document_sequences')
-                ->where('prefix', $prefix)
-                ->where('year', $year)
-                ->lockForUpdate()
-                ->first(['id', 'last_number']);
+            if ($sequence === null) {
+                DB::table('document_sequences')->insertOrIgnore(['prefix' => $prefix, 'year' => $year, 'last_number' => 0]);
+                $sequence = $this->lockSequence($prefix, $year);
+            }
 
             $number = (int) $sequence->last_number + 1;
 
@@ -33,5 +35,14 @@ class DocumentNumber
 
             return sprintf('%s-%d-%04d', $prefix, $year, $number);
         });
+    }
+
+    private function lockSequence(string $prefix, int $year): ?object
+    {
+        return DB::table('document_sequences')
+            ->where('prefix', $prefix)
+            ->where('year', $year)
+            ->lockForUpdate()
+            ->first(['id', 'last_number']);
     }
 }
