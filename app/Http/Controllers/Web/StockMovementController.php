@@ -15,6 +15,7 @@ use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class StockMovementController extends Controller
@@ -27,8 +28,8 @@ class StockMovementController extends Controller
             ->with(['material', 'user', 'reference'])
             ->when($request->enum('type', StockMovementType::class), fn ($query, StockMovementType $type) => $query->where('type', $type))
             ->when($request->string('search')->toString(), fn ($query, string $term) => $query->whereHas('material', fn ($query) => $query->search($term)))
-            ->when($request->date('from'), fn ($query, $from) => $query->where('created_at', '>=', $from->startOfDay()))
-            ->when($request->date('to'), fn ($query, $to) => $query->where('created_at', '<=', $to->endOfDay()))
+            ->when($this->dateFilter($request, 'from'), fn ($query, Carbon $from) => $query->where('created_at', '>=', $from->startOfDay()))
+            ->when($this->dateFilter($request, 'to'), fn ($query, Carbon $to) => $query->where('created_at', '<=', $to->endOfDay()))
             ->latest('id')
             ->paginate(30)
             ->withQueryString();
@@ -37,6 +38,23 @@ class StockMovementController extends Controller
             'movements' => $movements,
             'types' => StockMovementType::options(),
         ]);
+    }
+
+    /**
+     * A Y-m-d date from the query string, or null when it is missing or malformed (a hand-edited URL should not
+     * crash the ledger).
+     */
+    private function dateFilter(Request $request, string $key): ?Carbon
+    {
+        $value = $request->string($key)->toString();
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        $date = Carbon::createFromFormat('!Y-m-d', $value);
+
+        return $date !== null && $date->format('Y-m-d') === $value ? $date : null;
     }
 
     public function store(

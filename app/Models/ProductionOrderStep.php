@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Domain\Production\Enums\ProductionOrderStatus;
 use App\Domain\Production\Enums\StepStatus;
+use App\Enums\UserRole;
 use Database\Factories\ProductionOrderStepFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -94,6 +95,18 @@ class ProductionOrderStep extends Model
             : 0;
 
         return $this->actual_seconds + $running;
+    }
+
+    /**
+     * A running step belongs to the operator whose clock is running on it: only they may pause or complete it, so
+     * worked time and scrap are never booked in someone else's name. Planners and admins may step in, for example
+     * when an operator left at the end of a shift without pausing.
+     */
+    public function canBeStoppedBy(User $user): bool
+    {
+        $openLog = $this->openTimeLog;
+
+        return $openLog === null || $openLog->user_id === $user->id || $user->hasRole(UserRole::Planner, UserRole::Admin);
     }
 
     public function isLastStep(): bool

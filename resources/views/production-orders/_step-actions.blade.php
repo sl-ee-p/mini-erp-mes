@@ -11,7 +11,7 @@
         </form>
     @endif
 
-    @if ($step->status === StepStatus::Running)
+    @if ($step->status === StepStatus::Running && $step->canBeStoppedBy(auth()->user()))
         <form method="POST" action="{{ route('production-steps.pause', $step) }}">
             @csrf
             <x-button variant="warning" :size="$size">Pause</x-button>

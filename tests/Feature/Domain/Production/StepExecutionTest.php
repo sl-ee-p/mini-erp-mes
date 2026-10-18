@@ -77,7 +77,7 @@ class StepExecutionTest extends TestCase
         $this->freezeTime();
         app(StartStep::class)->execute($step, $this->operator);
         $this->travel(15)->minutes();
-        app(PauseStep::class)->execute($step);
+        app(PauseStep::class)->execute($step, $this->operator);
         $this->travel(30)->minutes(); // break: not counted
         app(StartStep::class)->execute($step, $this->operator);
         $this->travel(10)->minutes();
@@ -92,11 +92,59 @@ class StepExecutionTest extends TestCase
     {
         $step = $this->releaseProductionOrder()->steps[0];
         app(StartStep::class)->execute($step, $this->operator);
-        app(PauseStep::class)->execute($step);
+        app(PauseStep::class)->execute($step, $this->operator);
 
         $this->expectException(InvalidStateTransition::class);
 
         app(CompleteStep::class)->execute($step, $this->operator);
+    }
+
+    public function test_only_the_operator_running_a_step_can_pause_or_complete_it(): void
+    {
+        $step = $this->releaseProductionOrder()->steps[0];
+        $colleague = User::factory()->operator()->create();
+        app(StartStep::class)->execute($step, $this->operator);
+
+        foreach ([
+            'pause' => fn () => app(PauseStep::class)->execute($step, $colleague),
+            'complete' => fn () => app(CompleteStep::class)->execute($step, $colleague),
+        ] as $action => $attempt) {
+            try {
+                $attempt();
+                $this->fail("A colleague should not be able to {$action} a step someone else is running.");
+            } catch (ProductionException $exception) {
+                $this->assertStringContainsString("being worked on by {$this->operator->name}", $exception->getMessage());
+            }
+        }
+
+        $step->refresh();
+        $this->assertSame(StepStatus::Running, $step->status);
+        $this->assertSame($this->operator->id, $step->openTimeLog()->value('user_id'));
+    }
+
+    public function test_a_paused_step_can_be_handed_over_to_another_operator(): void
+    {
+        $step = $this->releaseProductionOrder()->steps[0];
+        $colleague = User::factory()->operator()->create();
+        app(StartStep::class)->execute($step, $this->operator);
+        app(PauseStep::class)->execute($step, $this->operator);
+
+        app(StartStep::class)->execute($step, $colleague);
+        $completed = app(CompleteStep::class)->execute($step, $colleague);
+
+        $this->assertSame(StepStatus::Completed, $completed->status);
+        $this->assertSame($colleague->id, $completed->operator_id);
+    }
+
+    public function test_a_planner_can_stop_a_step_left_running_by_an_operator(): void
+    {
+        $step = $this->releaseProductionOrder()->steps[0];
+        app(StartStep::class)->execute($step, $this->operator);
+
+        $paused = app(PauseStep::class)->execute($step, User::factory()->planner()->create());
+
+        $this->assertSame(StepStatus::Paused, $paused->status);
+        $this->assertSame(0, $paused->timeLogs()->whereNull('ended_at')->count());
     }
 
     public function test_completing_records_scrap_and_feeds_good_units_to_the_next_step(): void

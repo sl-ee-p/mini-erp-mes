@@ -8,6 +8,7 @@ use App\Domain\Inventory\Enums\StockMovementType;
 use App\Models\Material;
 use App\Models\StockMovement;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
@@ -26,12 +27,22 @@ class AdjustStockToCount
             throw new InvalidArgumentException('A counted quantity cannot be negative.');
         }
 
-        $delta = round($countedQuantity - $material->stock_qty, 3);
+        // The difference is taken against the balance under lock, not the one loaded with the request, so a
+        // movement booked in the meantime cannot leave the stock off the counted quantity.
+        return DB::transaction(function () use ($material, $countedQuantity, $reason, $user): ?StockMovement {
+            /** @var Material $locked */
+            $locked = Material::query()->lockForUpdate()->findOrFail($material->getKey());
 
-        if ($delta == 0.0) {
-            return null;
-        }
+            $delta = round($countedQuantity - $locked->stock_qty, 3);
 
-        return $this->recordStockMovement->execute($material, StockMovementType::Adjustment, $delta, $reason, user: $user);
+            if ($delta == 0.0) {
+                $material->stock_qty = $locked->stock_qty;
+                $material->syncOriginalAttribute('stock_qty');
+
+                return null;
+            }
+
+            return $this->recordStockMovement->execute($material, StockMovementType::Adjustment, $delta, $reason, user: $user);
+        });
     }
 }
