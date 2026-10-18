@@ -5,9 +5,11 @@ on:
     branches: ["**"]
   pull_request:
 
+# Superseded runs of a branch are cancelled, except on main: cancelling a main run would also
+# cancel its publish/deploy jobs halfway (the deploy job's own concurrency group cannot prevent that).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   lint:
