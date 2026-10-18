@@ -17,6 +17,10 @@ once all its production is done. Some of these can fail (e.g. not enough stock).
 - Side effects that talk to the outside world are different: they implement `ShouldDispatchAfterCommit`
   and/or are queued (low-stock e-mails, PDF generation), so they never fire for rolled-back work.
 - Rows that change concurrently (step, material, sales order) are re-read with `lockForUpdate()`.
+  Step actions lock top-down — sales order → production order → step (`LocksStepForWork`) — the same order
+  the sales order actions use, so a step started while its order is being cancelled, or two production orders
+  of one sales order completing at once, serialise instead of overwriting each other or deadlocking.
+  Materials are locked last, in `material_id` order.
 
 ## Consequences
 - Listeners keep each responsibility small and testable, without giving up atomicity.

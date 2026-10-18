@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Production\Actions;
 
+use App\Domain\Production\Concerns\LocksStepForWork;
 use App\Domain\Production\Enums\StepStatus;
 use App\Domain\Production\Events\StepCompleted;
 use App\Domain\Production\Exceptions\ProductionException;
 use App\Models\ProductionOrderStep;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Completes a running step, recording scrap. Material consumption, finished-goods booking and order status
@@ -17,10 +17,11 @@ use Illuminate\Support\Facades\DB;
  */
 class CompleteStep
 {
+    use LocksStepForWork;
+
     public function execute(ProductionOrderStep $step, User $operator, int $scrapQty = 0): ProductionOrderStep
     {
-        return DB::transaction(function () use ($step, $operator, $scrapQty): ProductionOrderStep {
-            $step = ProductionOrderStep::query()->lockForUpdate()->findOrFail($step->id);
+        return $this->withLockedStep($step, function (ProductionOrderStep $step) use ($operator, $scrapQty): ProductionOrderStep {
             $step->status->assertCanTransitionTo(StepStatus::Completed, "Step “{$step->name}”");
 
             if ($scrapQty < 0 || $scrapQty > (int) $step->input_qty) {
