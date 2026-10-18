@@ -9,6 +9,7 @@ use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Sales\Enums\SalesOrderStatus;
 use App\Domain\Sales\Events\SalesOrderShipped;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderLine;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +26,10 @@ class ShipSalesOrder
             $order = SalesOrder::query()->lockForUpdate()->findOrFail($order->id);
             $order->status->assertCanTransitionTo(SalesOrderStatus::Shipped, "Sales order {$order->number}");
 
-            foreach ($order->lines()->with('product.material')->get() as $line) {
+            // Finished goods are locked in material id order, so concurrent shipments cannot deadlock.
+            $lines = $order->lines()->with('product.material')->get()->sortBy(fn (SalesOrderLine $line): int => $line->product->material_id);
+
+            foreach ($lines as $line) {
                 $this->recordStockMovement->execute(
                     $line->product->material,
                     StockMovementType::Out,

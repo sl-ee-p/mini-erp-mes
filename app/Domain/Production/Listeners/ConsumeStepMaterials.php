@@ -26,7 +26,8 @@ class ConsumeStepMaterials
 
         $productionOrder = $step->productionOrder;
 
-        foreach ($productionOrder->materials()->with('material')->get() as $line) {
+        // Materials are locked in id order, so concurrent completions never wait on each other in a cycle.
+        foreach ($productionOrder->materials()->with('material')->orderBy('material_id')->get() as $line) {
             $quantity = round($line->quantity_per_unit * (int) $step->input_qty, 3);
 
             if ($quantity <= 0) {
