@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Production\Actions;
 
+use App\Domain\Production\Enums\ProductionOrderStatus;
 use App\Domain\Production\Enums\StepStatus;
 use App\Domain\Production\Events\StepStarted;
 use App\Domain\Production\Exceptions\ProductionException;
@@ -22,6 +23,10 @@ class StartStep
         return DB::transaction(function () use ($step, $operator): ProductionOrderStep {
             $step = ProductionOrderStep::query()->lockForUpdate()->findOrFail($step->id);
             $step->status->assertCanTransitionTo(StepStatus::Running, "Step “{$step->name}”");
+
+            if (! in_array($step->productionOrder->status, ProductionOrderStatus::active(), true)) {
+                throw ProductionException::orderNotActive($step);
+            }
 
             $this->ensureOperatorIsFree($operator);
 

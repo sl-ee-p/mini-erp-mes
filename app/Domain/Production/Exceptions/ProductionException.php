@@ -21,6 +21,13 @@ class ProductionException extends DomainException
         return new self("“{$step->name}” cannot start before “{$previous->name}” is completed.");
     }
 
+    public static function orderNotActive(ProductionOrderStep $step): self
+    {
+        $order = $step->productionOrder;
+
+        return new self("{$order->number} is ".strtolower($order->status->label()).'; its steps can no longer be worked on.');
+    }
+
     public static function operatorBusy(ProductionOrderStep $runningStep): self
     {
         return new self("You are already working on “{$runningStep->name}” ({$runningStep->productionOrder->number}). Pause or complete it first.");
