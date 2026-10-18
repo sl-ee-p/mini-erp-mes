@@ -140,4 +140,25 @@ class MaterialAndStockTest extends TestCase
             ->assertSee('Issue I-1')
             ->assertDontSee('Receipt R-1');
     }
+
+    public function test_stock_ledger_can_be_filtered_by_date_and_ignores_malformed_dates(): void
+    {
+        $material = Material::factory()->stocked(10)->create();
+        $this->travelTo('2026-03-10 09:00');
+        $this->actingAs($this->planner)->post(route('materials.stock-movements.store', $material), ['type' => 'out', 'quantity' => 1, 'reason' => 'March issue']);
+        $this->travelTo('2026-04-10 09:00');
+        $this->actingAs($this->planner)->post(route('materials.stock-movements.store', $material), ['type' => 'out', 'quantity' => 1, 'reason' => 'April issue']);
+
+        $this->actingAs($this->planner)
+            ->get(route('stock-movements.index', ['from' => '2026-04-01', 'to' => '2026-04-30']))
+            ->assertOk()
+            ->assertSee('April issue')
+            ->assertDontSee('March issue');
+
+        $this->actingAs($this->planner)
+            ->get(route('stock-movements.index', ['from' => 'not-a-date', 'to' => '2026-02-31']))
+            ->assertOk()
+            ->assertSee('April issue')
+            ->assertSee('March issue');
+    }
 }
