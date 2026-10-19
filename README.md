@@ -20,9 +20,13 @@ docker compose exec app php artisan db:seed
 
 Without Docker: `composer setup && php artisan db:seed && composer dev` (SQLite by default).
 
-### Demo data on the deployed server
+### Demo data
 
-The deploy job migrates but never seeds. To load the demo workshop once on the home server:
+`db:seed` loads a complete demo workshop: master data plus a few weeks of history booked through the domain
+actions (orders in every status, one late, steps running and paused, goods receipts, a stock count and a material
+shortage). Dates are relative to the day you seed. The history is only added to a database without sales orders.
+
+The deploy job migrates but never seeds. To load the demo workshop once on a fresh home server:
 
 ```bash
 docker exec mini-erp-mes-app-1 php artisan db:seed --force
@@ -43,10 +47,12 @@ All use the password `password`.
 
 ## Features
 
+- **Dashboard**: open order value, late orders, orders ready to ship, production in progress, material shortages and scrap rate, with the lists behind them and the remaining planned work per work center.
+- **Search**: one box (press `/`) across orders, customers, products and materials; an exact document number or SKU, typed or scanned, opens the record directly.
 - **Sales**: customers, sales orders (draft → confirmed → shipped / cancelled), gap-free document numbers, order confirmation PDFs generated in a queued job.
 - **Catalog**: products with a bill of materials and a production routing across work centers.
 - **Production**: confirming a sales order releases one production order per line. Operators start, pause and complete steps; time is logged and material is consumed automatically. A running step can only be paused or completed by the operator working on it, or by a planner.
-- **Inventory**: stock ledger, manual adjustments, low-stock alerts.
+- **Inventory**: stock ledger, manual adjustments, low-stock alerts, and material allocated to released production with shortages flagged before work stalls. Stock list and ledger export to CSV with the current filters.
 - **Administration**: user management with four roles, and an audit log recording model changes with user, IP and before/after values.
 
 ## Quality
