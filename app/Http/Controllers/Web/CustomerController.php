@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Domain\Sales\Enums\SalesOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customers\CustomerRequest;
 use App\Models\Customer;
@@ -44,9 +45,21 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
+        $totals = $customer->salesOrders()
+            ->selectRaw('count(*) as orders')
+            ->selectRaw('coalesce(sum(case when status = ? then total else 0 end), 0) as shipped', [SalesOrderStatus::Shipped->value])
+            ->selectRaw('coalesce(sum(case when status in (?, ?, ?) then total else 0 end), 0) as open', array_map(fn (SalesOrderStatus $status) => $status->value, SalesOrderStatus::open()))
+            ->toBase()
+            ->first();
+
         return view('customers.show', [
             'customer' => $customer,
             'orders' => $customer->salesOrders()->latest('id')->limit(10)->get(),
+            'stats' => [
+                'orders' => (int) ($totals->orders ?? 0),
+                'shipped' => (float) ($totals->shipped ?? 0),
+                'open' => (float) ($totals->open ?? 0),
+            ],
         ]);
     }
 

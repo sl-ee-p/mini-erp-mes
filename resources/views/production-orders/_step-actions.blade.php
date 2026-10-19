@@ -2,8 +2,10 @@
 
 {{-- Start / pause / complete controls for one step. $size: 'sm' for tables, 'xl' for the tablet screen. --}}
 @php($size ??= 'sm')
+@php($fieldId = ($idPrefix ?? 'scrap').'-'.$step->id)
 
-<div class="flex flex-wrap items-center gap-2" x-data="{ completing: false }">
+<div class="flex flex-wrap items-center gap-2" x-data="{ completing: false }"
+     x-init="$watch('completing', (open) => open && $nextTick(() => document.getElementById(@js($fieldId))?.select()))">
     @if ($step->status->canTransitionTo(StepStatus::Running))
         <form method="POST" action="{{ route('production-steps.start', $step) }}">
             @csrf
@@ -18,21 +20,21 @@
         </form>
         <x-button type="button" :size="$size" @click="completing = true; $dispatch('dialog-open')">Complete</x-button>
 
-        <div x-cloak x-show="completing" class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4" @keydown.escape.window="completing = false; $dispatch('dialog-close')">
+        <div x-cloak x-show="completing" class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4 text-stone-800" role="dialog" aria-modal="true" aria-labelledby="{{ $fieldId }}-title" @keydown.escape.window="completing = false; $dispatch('dialog-close')">
             <form method="POST" action="{{ route('production-steps.complete', $step) }}" class="w-full max-w-md space-y-5 rounded-2xl bg-white p-6 shadow-xl"
                   x-data="{ scrap: 0 }" @click.outside="completing = false; $dispatch('dialog-close')">
                 @csrf
                 <div>
-                    <h3 class="text-lg font-semibold">Complete “{{ $step->name }}”</h3>
+                    <h3 id="{{ $fieldId }}-title" class="text-lg font-semibold">Complete “{{ $step->name }}”</h3>
                     <p class="text-sm text-stone-500">{{ $step->productionOrder->number }} · {{ $step->input_qty }} units processed</p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-stone-700" for="scrap-{{ $step->id }}">Scrapped units</label>
+                    <label class="mb-2 block text-sm font-medium text-stone-700" for="{{ $fieldId }}">Scrapped units</label>
                     <div class="flex items-center gap-3">
-                        <button type="button" class="size-14 rounded-xl bg-stone-100 text-2xl font-bold hover:bg-stone-200" @click="scrap = Math.max(0, scrap - 1)">−</button>
-                        <input id="scrap-{{ $step->id }}" type="number" name="scrap_qty" min="0" max="{{ $step->input_qty }}" x-model.number="scrap"
+                        <button type="button" class="size-14 rounded-xl bg-stone-100 text-2xl font-bold hover:bg-stone-200" @click="scrap = Math.max(0, scrap - 1)" aria-label="One less scrapped unit">−</button>
+                        <input id="{{ $fieldId }}" type="number" name="scrap_qty" min="0" max="{{ $step->input_qty }}" x-model.number="scrap"
                                class="h-14 w-24 rounded-xl border-stone-300 text-center text-2xl font-semibold tabular-nums focus:border-brand-500 focus:ring-brand-500">
-                        <button type="button" class="size-14 rounded-xl bg-stone-100 text-2xl font-bold hover:bg-stone-200" @click="scrap = Math.min({{ (int) $step->input_qty }}, scrap + 1)">+</button>
+                        <button type="button" class="size-14 rounded-xl bg-stone-100 text-2xl font-bold hover:bg-stone-200" @click="scrap = Math.min({{ (int) $step->input_qty }}, scrap + 1)" aria-label="One more scrapped unit">+</button>
                     </div>
                     <p class="mt-2 text-sm text-stone-600">Good units: <strong x-text="{{ (int) $step->input_qty }} - scrap"></strong></p>
                     @if ($step->consumes_materials)

@@ -20,5 +20,5 @@
         <td class="px-4 py-3 text-stone-500">{{ $movement->user?->name ?? 'System' }}</td>
     </tr>
 @empty
-    <tr><td colspan="7" class="px-4 py-8 text-center text-stone-500">No movements recorded.</td></tr>
+    <tr><td colspan="{{ ($showMaterial ?? false) ? 7 : 6 }}" class="px-4 py-8 text-center text-stone-500">No movements recorded.</td></tr>
 @endforelse

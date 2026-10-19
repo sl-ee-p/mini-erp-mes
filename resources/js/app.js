@@ -39,6 +39,27 @@ Alpine.data('autoRefresh', (intervalSeconds = 30) => ({
     },
 }));
 
+/**
+ * "/" jumps to the sidebar search from anywhere, unless the user is typing in a field.
+ */
+document.addEventListener('keydown', (event) => {
+    if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+    }
+
+    if (event.target.closest?.('input, textarea, select, [contenteditable="true"]')) {
+        return;
+    }
+
+    const search = document.getElementById('global-search');
+
+    if (search && window.matchMedia('(min-width: 1024px)').matches) {
+        event.preventDefault();
+        search.focus();
+        search.select();
+    }
+});
+
 window.Alpine = Alpine;
 
 Alpine.start();

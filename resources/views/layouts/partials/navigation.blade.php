@@ -10,14 +10,14 @@
 
 @can('viewAny', App\Models\Customer::class)
     <div class="space-y-1">
-        <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-500">Sales</p>
+        <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-400">Sales</p>
         <x-nav-link :href="route('sales-orders.index')" :active="request()->routeIs('sales-orders.*')">Sales orders</x-nav-link>
         <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">Customers</x-nav-link>
     </div>
 @endcan
 
 <div class="space-y-1">
-    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-500">Catalog &amp; inventory</p>
+    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-400">Catalog &amp; inventory</p>
     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Products</x-nav-link>
     <x-nav-link :href="route('materials.index')" :active="request()->routeIs('materials.*')">
         <span class="flex-1">Materials</span>
@@ -31,7 +31,7 @@
 
 @if (auth()->user()->can('viewAny', App\Models\User::class) || auth()->user()->can('view-audit-log'))
     <div class="space-y-1">
-        <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-500">Administration</p>
+        <p class="px-3 text-xs font-semibold uppercase tracking-wider text-stone-400">Administration</p>
         @can('viewAny', App\Models\User::class)
             <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">Users</x-nav-link>
         @endcan

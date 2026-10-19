@@ -14,13 +14,30 @@
         </x-slot:actions>
     </x-page-header>
 
+    <div class="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <x-stat label="Orders placed" :value="$stats['orders']" />
+        <x-stat label="Open order value" :value="App\Support\Format::money($stats['open'])" hint="Confirmed, not yet shipped" />
+        <x-stat label="Shipped to date" :value="App\Support\Format::money($stats['shipped'])" class="col-span-2 lg:col-span-1" />
+    </div>
+
     <div class="grid gap-6 lg:grid-cols-3">
         <x-card title="Details">
             <dl class="space-y-3 text-sm">
-                @foreach (['Email' => $customer->email, 'Phone' => $customer->phone, 'VAT number' => $customer->vat_number, 'Address' => trim($customer->address.', '.$customer->city.' ('.$customer->country.')', ', ')] as $label => $value)
+                @foreach ([
+                    'Email' => $customer->email ? ['mailto:'.$customer->email, $customer->email] : null,
+                    'Phone' => $customer->phone ? ['tel:'.preg_replace('/[^0-9+]/', '', $customer->phone), $customer->phone] : null,
+                    'VAT number' => $customer->vat_number,
+                    'Address' => trim($customer->address.', '.$customer->city.' ('.$customer->country.')', ', '),
+                ] as $label => $value)
                     <div>
                         <dt class="text-xs font-medium uppercase text-stone-500">{{ $label }}</dt>
-                        <dd>{{ $value ?: '—' }}</dd>
+                        <dd>
+                            @if (is_array($value))
+                                <a href="{{ $value[0] }}" class="text-brand-700 hover:underline">{{ $value[1] }}</a>
+                            @else
+                                {{ $value ?: '—' }}
+                            @endif
+                        </dd>
                     </div>
                 @endforeach
                 @if ($customer->notes)

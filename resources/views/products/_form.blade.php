@@ -45,14 +45,14 @@
         <div class="space-y-2">
             <template x-for="(line, index) in bom" :key="index">
                 <div class="flex items-start gap-2">
-                    <select :name="`bom[${index}][material_id]`" x-model="line.material_id" required
+                    <select :name="`bom[${index}][material_id]`" x-model="line.material_id" required aria-label="Material"
                             class="block w-full flex-1 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                         <option value="">Select material…</option>
                         @foreach ($materials as $id => $label)
                             <option value="{{ $id }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    <input type="number" step="0.001" min="0.001" :name="`bom[${index}][quantity]`" x-model="line.quantity" required placeholder="Qty"
+                    <input type="number" step="0.001" min="0.001" :name="`bom[${index}][quantity]`" x-model="line.quantity" required placeholder="Qty" aria-label="Quantity per unit"
                            class="block w-28 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                     <button type="button" class="p-2 text-stone-400 hover:text-red-600" @click="bom.splice(index, 1)" aria-label="Remove line">&times;</button>
                 </div>
@@ -73,15 +73,15 @@
             <template x-for="(step, index) in routing" :key="index">
                 <div class="flex flex-wrap items-center gap-2 rounded-md bg-stone-50 p-2">
                     <span class="w-8 text-center text-xs font-semibold text-stone-500" x-text="(index + 1) * 10"></span>
-                    <input type="text" :name="`routing[${index}][name]`" x-model="step.name" required placeholder="Step name"
+                    <input type="text" :name="`routing[${index}][name]`" x-model="step.name" required placeholder="Step name" aria-label="Step name"
                            class="block min-w-40 flex-1 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
-                    <select :name="`routing[${index}][work_center_id]`" x-model="step.work_center_id"
+                    <select :name="`routing[${index}][work_center_id]`" x-model="step.work_center_id" aria-label="Work center"
                             class="block w-40 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                         @foreach ($workCenters as $id => $name)
                             <option value="{{ $id }}">{{ $name }}</option>
                         @endforeach
                     </select>
-                    <input type="number" step="0.01" min="0.01" :name="`routing[${index}][planned_minutes_per_unit]`" x-model="step.planned_minutes_per_unit" required placeholder="min/unit"
+                    <input type="number" step="0.01" min="0.01" :name="`routing[${index}][planned_minutes_per_unit]`" x-model="step.planned_minutes_per_unit" required placeholder="min/unit" aria-label="Planned minutes per unit"
                            class="block w-28 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                     <input type="hidden" :name="`routing[${index}][consumes_materials]`" :value="step.consumes_materials ? 1 : 0">
                     <label class="inline-flex items-center gap-1 text-xs text-stone-600">

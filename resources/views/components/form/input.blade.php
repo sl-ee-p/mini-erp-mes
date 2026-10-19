@@ -6,7 +6,7 @@
     @if ($label)
         <label for="{{ $id }}" class="block text-sm font-medium text-stone-700">{{ $label }}</label>
     @endif
-    <input id="{{ $id }}" name="{{ $name }}" type="{{ $type }}"
+    <input id="{{ $id }}" name="{{ $name }}" type="{{ $type }}" @if (! $label && $attributes->has('placeholder') && ! $attributes->has('aria-label')) aria-label="{{ $attributes->get('placeholder') }}" @endif
            @if ($type !== 'password') value="{{ old($name, $value) }}" @endif
            {{ $attributes->except('class')->class([
                'block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500',

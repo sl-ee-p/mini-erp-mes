@@ -5,18 +5,21 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1c1917">
     <title>{{ $title ? $title.' · ' : '' }}{{ config('app.name') }}</title>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex h-full items-center justify-center font-sans text-stone-800 antialiased">
-    <div class="w-full max-w-sm px-4">
+    <main class="w-full max-w-sm px-4">
         <div class="mb-8 flex flex-col items-center gap-3">
-            <span class="inline-flex size-12 items-center justify-center rounded-lg bg-brand-500 text-lg font-bold text-white">OW</span>
+            <span class="inline-flex size-12 items-center justify-center rounded-lg bg-brand-600 text-lg font-bold text-white" aria-hidden="true">OW</span>
             <h1 class="text-xl font-semibold">Oakline Woodworks ERP</h1>
         </div>
         <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
             {{ $slot }}
         </div>
-    </div>
+    </main>
 </body>
 </html>

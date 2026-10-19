@@ -37,7 +37,7 @@ class ShopFloorController extends Controller
         $counts = (clone $actionable)->selectRaw('work_center_id, count(*) as aggregate')->groupBy('work_center_id')->pluck('aggregate', 'work_center_id');
 
         $myStep = ProductionOrderStep::query()
-            ->with(['productionOrder.product', 'openTimeLog'])
+            ->with(['productionOrder.product', 'openTimeLog.user'])
             ->whereHas('openTimeLog', fn ($query) => $query->where('user_id', $user->id))
             ->first();
 

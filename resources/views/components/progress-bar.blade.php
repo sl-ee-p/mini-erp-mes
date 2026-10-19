@@ -1,7 +1,7 @@
-@props(['percent' => 0, 'color' => 'brand'])
+@props(['percent' => 0, 'color' => 'brand', 'label' => 'Progress'])
 
 <div {{ $attributes->class(['flex items-center gap-2']) }}>
-    <div class="h-2 flex-1 overflow-hidden rounded-full bg-stone-200" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100">
+    <div class="h-2 flex-1 overflow-hidden rounded-full bg-stone-200" role="progressbar" aria-label="{{ $label }}" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100">
         <div @class([
             'h-full rounded-full',
             'bg-brand-500' => $color === 'brand',

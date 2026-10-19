@@ -7,7 +7,7 @@
     @if ($label)
         <label for="{{ $id }}" class="block text-sm font-medium text-stone-700">{{ $label }}</label>
     @endif
-    <select id="{{ $id }}" name="{{ $name }}"
+    <select id="{{ $id }}" name="{{ $name }}" @if (! $label && $placeholder) aria-label="{{ $placeholder }}" @endif
             {{ $attributes->except('class')->class([
                 'block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500',
                 'border-red-400' => $errors->has($name),

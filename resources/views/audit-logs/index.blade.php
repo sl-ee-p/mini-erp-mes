@@ -21,11 +21,18 @@
         @forelse ($logs as $log)
             <tr class="align-top">
                 <td class="whitespace-nowrap px-4 py-3 text-stone-500">{{ $log->created_at->format('d M Y H:i:s') }}</td>
-                <td class="px-4 py-3">{{ $log->user?->name ?? 'System' }}</td>
+                <td class="px-4 py-3">{{ $log->user?->name ?? 'System' }}@if ($log->ip_address)<span class="block text-xs text-stone-500">{{ $log->ip_address }}</span>@endif</td>
                 <td class="px-4 py-3">
                     <x-badge :color="match ($log->event) { 'created' => 'emerald', 'deleted' => 'red', default => 'sky' }">{{ ucfirst($log->event) }}</x-badge>
                 </td>
-                <td class="px-4 py-3">{{ str($log->auditable_type)->headline() }} #{{ $log->auditable_id }}</td>
+                <td class="px-4 py-3">
+                    @php($recordRoute = $log->event === 'deleted' ? null : ($recordRoutes[$log->auditable_type] ?? null))
+                    @if ($recordRoute)
+                        <a href="{{ route($recordRoute, $log->auditable_id) }}" class="text-brand-700 hover:underline">{{ str($log->auditable_type)->headline() }} #{{ $log->auditable_id }}</a>
+                    @else
+                        {{ str($log->auditable_type)->headline() }} #{{ $log->auditable_id }}
+                    @endif
+                </td>
                 <td class="px-4 py-3">
                     <dl class="space-y-0.5 text-xs">
                         @foreach (array_slice($log->changedAttributes(), 0, 8) as $attribute)
