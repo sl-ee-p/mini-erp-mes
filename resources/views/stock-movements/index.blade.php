@@ -7,6 +7,10 @@
         <x-form.input name="from" type="date" label="From" :value="request('from')" />
         <x-form.input name="to" type="date" label="To" :value="request('to')" />
         <x-button variant="secondary">Filter</x-button>
+        <x-button variant="secondary" :href="route('stock-movements.export', request()->query())" class="ml-auto">
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>
+            Export CSV
+        </x-button>
     </form>
 
     <x-table>
