@@ -13,10 +13,13 @@ use App\Http\Requests\Materials\StoreStockMovementRequest;
 use App\Models\Material;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Support\CsvExport;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StockMovementController extends Controller
 {
@@ -24,12 +27,8 @@ class StockMovementController extends Controller
     {
         $this->authorize('viewAny', Material::class);
 
-        $movements = StockMovement::query()
+        $movements = $this->filtered($request)
             ->with(['material', 'user', 'reference'])
-            ->when($request->enum('type', StockMovementType::class), fn ($query, StockMovementType $type) => $query->where('type', $type))
-            ->when($request->string('search')->toString(), fn ($query, string $term) => $query->whereHas('material', fn ($query) => $query->search($term)))
-            ->when($this->dateFilter($request, 'from'), fn ($query, Carbon $from) => $query->where('created_at', '>=', $from->startOfDay()))
-            ->when($this->dateFilter($request, 'to'), fn ($query, Carbon $to) => $query->where('created_at', '<=', $to->endOfDay()))
             ->latest('id')
             ->paginate(30)
             ->withQueryString();
@@ -38,6 +37,44 @@ class StockMovementController extends Controller
             'movements' => $movements,
             'types' => StockMovementType::options(),
         ]);
+    }
+
+    /**
+     * The ledger with the current filters, oldest first, as accountants and auditors read it.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', Material::class);
+
+        return CsvExport::download(
+            'stock-movements-'.now()->format('Y-m-d').'.csv',
+            $this->filtered($request)->with(['material', 'user', 'reference']),
+            ['Date', 'SKU', 'Material', 'Type', 'Quantity', 'Unit', 'Balance after', 'Reason', 'Reference', 'By'],
+            fn (StockMovement $movement): array => [
+                $movement->created_at->format('Y-m-d H:i:s'),
+                $movement->material->sku,
+                $movement->material->name,
+                $movement->type->label(),
+                $movement->quantity,
+                $movement->material->unit->label(),
+                $movement->balance_after,
+                $movement->reason,
+                $movement->reference ? ($movement->reference->getAttribute('number') ?? $movement->reference_type.' #'.$movement->reference_id) : null,
+                $movement->user->name ?? 'System',
+            ],
+        );
+    }
+
+    /**
+     * @return Builder<StockMovement>
+     */
+    private function filtered(Request $request): Builder
+    {
+        return StockMovement::query()
+            ->when($request->enum('type', StockMovementType::class), fn ($query, StockMovementType $type) => $query->where('type', $type))
+            ->when($request->string('search')->toString(), fn ($query, string $term) => $query->whereHas('material', fn ($query) => $query->search($term)))
+            ->when($this->dateFilter($request, 'from'), fn ($query, Carbon $from) => $query->where('created_at', '>=', $from->startOfDay()))
+            ->when($this->dateFilter($request, 'to'), fn ($query, Carbon $to) => $query->where('created_at', '<=', $to->endOfDay()));
     }
 
     /**

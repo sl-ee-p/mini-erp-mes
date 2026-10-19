@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Web;
 
+use App\Domain\Sales\Enums\SalesOrderStatus;
 use App\Models\Customer;
+use App\Models\SalesOrder;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -77,5 +79,18 @@ class CustomerManagementTest extends TestCase
         $this->actingAs(User::factory()->operator()->create())
             ->get(route('customers.index'))
             ->assertForbidden();
+    }
+
+    public function test_customer_page_summarises_the_order_book(): void
+    {
+        $customer = Customer::factory()->create();
+        SalesOrder::factory()->for($customer)->status(SalesOrderStatus::Shipped)->create(['total' => 1000]);
+        SalesOrder::factory()->for($customer)->status(SalesOrderStatus::Confirmed)->create(['total' => 250.5]);
+        SalesOrder::factory()->for($customer)->create(['total' => 99]);
+
+        $this->actingAs(User::factory()->sales()->create())
+            ->get(route('customers.show', $customer))
+            ->assertOk()
+            ->assertSeeInOrder(['Orders placed', '3', 'Open order value', '€ 250.50', 'Shipped to date', '€ 1,000.00']);
     }
 }

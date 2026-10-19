@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database with a complete demo workshop.
+     * Seed the application's database with a complete demo workshop, including a few weeks of order history.
      */
     public function run(): void
     {
@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             MaterialSeeder::class,
             ProductSeeder::class,
             CustomerSeeder::class,
+            DemoActivitySeeder::class,
         ]);
     }
 }

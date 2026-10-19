@@ -112,4 +112,19 @@ class ShopFloorTest extends TestCase
             $this->actingAs($user)->get(route('production-orders.show', $productionOrder))->assertOk()->assertSee($productionOrder->steps[0]->name);
         }
     }
+
+    public function test_the_running_step_banner_has_its_own_controls(): void
+    {
+        $productionOrder = $this->releaseProductionOrder();
+        $operator = User::factory()->operator()->create();
+        $step = $productionOrder->steps[0];
+        app(StartStep::class)->execute($step, $operator);
+
+        // The banner and the queue card each carry a completion dialog, with distinct field ids.
+        $this->actingAs($operator)->get(route('shop-floor.index'))
+            ->assertOk()
+            ->assertSee('id="current-scrap-'.$step->id.'"', false)
+            ->assertSee('id="scrap-'.$step->id.'"', false)
+            ->assertSee('Open '.$productionOrder->number);
+    }
 }

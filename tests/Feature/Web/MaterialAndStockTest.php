@@ -6,8 +6,10 @@ namespace Tests\Feature\Web;
 
 use App\Domain\Inventory\Enums\MaterialType;
 use App\Domain\Inventory\Enums\UnitOfMeasure;
+use App\Domain\Sales\Actions\ConfirmSalesOrder;
 use App\Models\Material;
 use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -160,5 +162,26 @@ class MaterialAndStockTest extends TestCase
             ->assertOk()
             ->assertSee('April issue')
             ->assertSee('March issue');
+    }
+
+    public function test_list_shows_allocation_and_filters_shortages(): void
+    {
+        $product = Product::factory()->withBomAndRouting(rawStock: 20)->create();
+        $salesOrder = SalesOrder::factory()->withLines([$product], 4)->create();
+        app(ConfirmSalesOrder::class)->execute($salesOrder);
+        $short = $product->bomItems()->where('quantity', 8)->sole()->material;
+        $covered = $product->bomItems()->where('quantity', 2.5)->sole()->material;
+
+        $this->actingAs($this->planner)
+            ->get(route('materials.index', ['shortage' => 1]))
+            ->assertOk()
+            ->assertSeeInOrder([$short->name, '20 pcs', '32', '-12', 'Short'])
+            ->assertDontSee($covered->name);
+
+        $this->actingAs($this->planner)
+            ->get(route('materials.show', $short))
+            ->assertOk()
+            ->assertSee('Released production needs 12 pcs more than is on hand.')
+            ->assertSee($salesOrder->productionOrders()->sole()->number);
     }
 }

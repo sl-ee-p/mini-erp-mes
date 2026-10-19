@@ -33,6 +33,14 @@ class AuditLogController extends Controller
             'types' => array_combine($types, array_map(fn (string $type) => str($type)->headline()->toString(), $types)),
             'users' => User::query()->orderBy('name')->pluck('name', 'id')->all(),
             'events' => ['created' => 'Created', 'updated' => 'Updated', 'deleted' => 'Deleted'],
+            'recordRoutes' => [
+                'user' => 'users.edit',
+                'customer' => 'customers.show',
+                'material' => 'materials.show',
+                'product' => 'products.show',
+                'sales_order' => 'sales-orders.show',
+                'production_order' => 'production-orders.show',
+            ],
         ]);
     }
 }

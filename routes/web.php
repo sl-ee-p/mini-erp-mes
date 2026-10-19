@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\ProductionStepController;
 use App\Http\Controllers\Web\SalesOrderController;
 use App\Http\Controllers\Web\SalesOrderPdfController;
 use App\Http\Controllers\Web\SalesOrderWorkflowController;
+use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\ShopFloorController;
 use App\Http\Controllers\Web\StockMovementController;
 use App\Http\Controllers\Web\UserController;
@@ -27,6 +28,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/', HomeController::class)->name('home');
+    Route::get('search', SearchController::class)->name('search');
 
     Route::get('dashboard', DashboardController::class)->middleware('can:view-dashboard')->name('dashboard');
     Route::get('shop-floor', [ShopFloorController::class, 'index'])->middleware('can:use-shop-floor')->name('shop-floor.index');
@@ -50,9 +52,11 @@ Route::middleware('auth')->group(function (): void {
     });
 
     Route::resource('products', ProductController::class)->except('destroy');
+    Route::get('materials/export', [MaterialController::class, 'export'])->name('materials.export');
     Route::resource('materials', MaterialController::class)->except('destroy');
 
     Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
+    Route::get('stock-movements/export', [StockMovementController::class, 'export'])->name('stock-movements.export');
     Route::post('materials/{material}/stock-movements', [StockMovementController::class, 'store'])->name('materials.stock-movements.store');
 
     Route::resource('users', UserController::class)->except(['show', 'destroy']);

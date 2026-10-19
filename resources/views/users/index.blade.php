@@ -18,7 +18,7 @@
                 <th class="px-4 py-3">Email</th>
                 <th class="px-4 py-3">Role</th>
                 <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3"></th>
+                <th class="px-4 py-3"><span class="sr-only">Actions</span></th>
             </tr>
         </x-slot:head>
         @forelse ($users as $user)

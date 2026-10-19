@@ -9,7 +9,7 @@
             </tbody>
         </table>
     </div>
-    @isset($footer)
+    @if (isset($footer) && $footer->hasActualContent())
         <div class="border-t border-stone-200 px-4 py-3">{{ $footer }}</div>
-    @endisset
+    @endif
 </div>

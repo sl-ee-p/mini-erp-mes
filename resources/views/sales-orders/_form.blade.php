@@ -38,16 +38,16 @@
             </div>
             <template x-for="(line, index) in lines" :key="index">
                 <div class="flex flex-wrap items-center gap-2">
-                    <select :name="`lines[${index}][product_id]`" x-model="line.product_id" required
+                    <select :name="`lines[${index}][product_id]`" x-model="line.product_id" required aria-label="Product"
                             class="block min-w-56 flex-1 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                         <option value="">Select product…</option>
                         <template x-for="product in Object.values(products)" :key="product.id">
                             <option :value="product.id" x-text="product.label" :selected="product.id == line.product_id"></option>
                         </template>
                     </select>
-                    <input type="number" min="1" step="1" :name="`lines[${index}][quantity]`" x-model="line.quantity" required
+                    <input type="number" min="1" step="1" :name="`lines[${index}][quantity]`" x-model="line.quantity" required aria-label="Quantity"
                            class="block w-24 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
-                    <input type="number" min="0" step="0.01" :name="`lines[${index}][unit_price]`" x-model="line.unit_price"
+                    <input type="number" min="0" step="0.01" :name="`lines[${index}][unit_price]`" x-model="line.unit_price" aria-label="Unit price"
                            :placeholder="products[line.product_id]?.price ?? 'List price'"
                            class="block w-32 rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
                     <span class="w-32 text-right text-sm tabular-nums" x-text="money(price(line) * Number(line.quantity || 0))"></span>

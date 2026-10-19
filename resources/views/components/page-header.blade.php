@@ -4,7 +4,7 @@
     <div>
         <h1 class="text-2xl font-semibold text-stone-900">{{ $title }}</h1>
         @if ($subtitle)
-            <p class="mt-1 text-sm text-stone-500">{{ $subtitle }}</p>
+            <p class="mt-1 text-sm text-stone-600">{{ $subtitle }}</p>
         @endif
     </div>
     @isset($actions)

@@ -31,7 +31,7 @@
                 <th class="px-4 py-3 text-right">Actual</th>
                 <th class="px-4 py-3">Operator</th>
                 @can('use-shop-floor')
-                    <th class="px-4 py-3"></th>
+                    <th class="px-4 py-3"><span class="sr-only">Actions</span></th>
                 @endcan
             </tr>
         </x-slot:head>

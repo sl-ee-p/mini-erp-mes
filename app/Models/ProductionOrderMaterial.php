@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property float $required_qty
  * @property float $consumed_qty
  * @property-read Material $material
+ * @property-read ProductionOrder $productionOrder
  */
 #[Fillable(['production_order_id', 'material_id', 'quantity_per_unit', 'required_qty', 'consumed_qty'])]
 class ProductionOrderMaterial extends Model

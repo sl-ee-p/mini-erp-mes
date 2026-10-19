@@ -28,6 +28,10 @@
                     </div>
                     <p class="font-mono text-5xl font-bold tabular-nums" x-data="stepTimer({{ $myStep->elapsedSeconds() }}, true)" x-text="display">{{ gmdate('H:i:s', $myStep->elapsedSeconds()) }}</p>
                 </div>
+                <div class="mt-5 flex flex-wrap items-center gap-3">
+                    @include('production-orders._step-actions', ['step' => $myStep, 'size' => 'xl', 'idPrefix' => 'current-scrap'])
+                    <a href="{{ route('production-orders.show', $myStep->productionOrder) }}" class="text-base font-medium text-emerald-50 underline-offset-4 hover:underline">Open {{ $myStep->productionOrder->number }}</a>
+                </div>
             </section>
         @endif
 
@@ -65,7 +69,8 @@
                             </div>
                             @if ($step->status !== StepStatus::Pending && $step->operator)
                                 <div class="col-span-2 text-sm text-stone-500">
-                                    {{ $step->status === StepStatus::Running ? 'In progress by' : 'Last worked by' }} {{ $step->openTimeLog?->user->name ?? $step->operator->name }}
+                                    <dt class="sr-only">Operator</dt>
+                                    <dd>{{ $step->status === StepStatus::Running ? 'In progress by' : 'Last worked by' }} {{ $step->openTimeLog?->user->name ?? $step->operator->name }}</dd>
                                 </div>
                             @endif
                         </dl>
@@ -74,7 +79,7 @@
                     @include('production-orders._step-actions', ['step' => $step, 'size' => 'xl'])
                 </article>
             @empty
-                <div class="col-span-full rounded-2xl border-2 border-dashed border-stone-300 p-12 text-center text-lg text-stone-500">
+                <div class="col-span-full rounded-2xl border-2 border-dashed border-stone-300 p-12 text-center text-lg text-stone-600">
                     Nothing to do here right now. 🎉
                 </div>
             @endforelse

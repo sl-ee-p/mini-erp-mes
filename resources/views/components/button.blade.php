@@ -9,8 +9,8 @@
         'bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500' => $variant === 'primary',
         'bg-white text-stone-700 ring-1 ring-inset ring-stone-300 hover:bg-stone-50 focus-visible:ring-stone-400' => $variant === 'secondary',
         'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500' => $variant === 'danger',
-        'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500' => $variant === 'success',
-        'bg-amber-500 text-white hover:bg-amber-600 focus-visible:ring-amber-400' => $variant === 'warning',
+        'bg-emerald-700 text-white hover:bg-emerald-800 focus-visible:ring-emerald-500' => $variant === 'success',
+        'bg-amber-400 text-amber-950 hover:bg-amber-300 focus-visible:ring-amber-500' => $variant === 'warning',
     ]);
 @endphp
 
