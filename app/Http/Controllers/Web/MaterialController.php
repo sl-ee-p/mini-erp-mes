@@ -98,7 +98,7 @@ class MaterialController extends Controller
             'material' => $material->load('product'),
             'allocated' => $requirements->allocated([$material->id])->get($material->id, 0.0),
             'demand' => $requirements->openDemand($material),
-            'movements' => $material->stockMovements()->with(['user', 'reference'])->latest('id')->paginate(20),
+            'movements' => $material->stockMovements()->withReference()->with('user')->latest('id')->paginate(20),
             'movementTypes' => StockMovementType::options(),
         ]);
     }

@@ -13,8 +13,8 @@
         <td class="px-4 py-3 text-right tabular-nums">{{ Format::quantity($movement->balance_after) }}</td>
         <td class="px-4 py-3">
             {{ $movement->reason ?? '—' }}
-            @if ($movement->reference)
-                <span class="block text-xs text-stone-500">{{ str($movement->reference_type)->headline() }} {{ $movement->reference->number ?? '#'.$movement->reference_id }}</span>
+            @if ($reference = $movement->referenceLabel())
+                <span class="block text-xs text-stone-500">{{ $reference }}</span>
             @endif
         </td>
         <td class="px-4 py-3 text-stone-500">{{ $movement->user?->name ?? 'System' }}</td>

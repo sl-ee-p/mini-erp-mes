@@ -28,7 +28,8 @@ class StockMovementController extends Controller
         $this->authorize('viewAny', Material::class);
 
         $movements = $this->filtered($request)
-            ->with(['material', 'user', 'reference'])
+            ->withReference()
+            ->with(['material', 'user'])
             ->latest('id')
             ->paginate(30)
             ->withQueryString();
@@ -48,7 +49,7 @@ class StockMovementController extends Controller
 
         return CsvExport::download(
             'stock-movements-'.now()->format('Y-m-d').'.csv',
-            $this->filtered($request)->with(['material', 'user', 'reference']),
+            $this->filtered($request)->withReference()->with(['material', 'user']),
             ['Date', 'SKU', 'Material', 'Type', 'Quantity', 'Unit', 'Balance after', 'Reason', 'Reference', 'By'],
             fn (StockMovement $movement): array => [
                 $movement->created_at->format('Y-m-d H:i:s'),
@@ -59,7 +60,7 @@ class StockMovementController extends Controller
                 $movement->material->unit->label(),
                 $movement->balance_after,
                 $movement->reason,
-                $movement->reference ? ($movement->reference->getAttribute('number') ?? $movement->reference_type.' #'.$movement->reference_id) : null,
+                $movement->referenceLabel(),
                 $movement->user->name ?? 'System',
             ],
         );

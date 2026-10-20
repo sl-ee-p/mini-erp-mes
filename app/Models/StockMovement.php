@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Domain\Inventory\Enums\StockMovementType;
 use Database\Factories\StockMovementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property-read Material $material
  * @property-read User|null $user
+ * @property-read Model|null $reference
  */
 #[Fillable(['material_id', 'type', 'quantity', 'balance_after', 'reason', 'reference_type', 'reference_id', 'user_id'])]
 class StockMovement extends Model
@@ -61,6 +63,39 @@ class StockMovement extends Model
     public function reference(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * The reference document as people know it: the sales or production order number, plus the step for material
+     * consumed by production (a step has no number of its own). Eager load it with the `withReference` scope.
+     */
+    public function referenceLabel(): ?string
+    {
+        $reference = $this->reference;
+
+        if ($reference === null) {
+            return null;
+        }
+
+        if ($reference instanceof ProductionOrderStep) {
+            return "{$reference->productionOrder->number} · {$reference->name}";
+        }
+
+        if ($reference instanceof SalesOrder || $reference instanceof ProductionOrder) {
+            return $reference->number;
+        }
+
+        return "{$this->reference_type} #{$this->reference_id}";
+    }
+
+    /**
+     * Eager loads the reference document, and the production order behind a consuming step, for referenceLabel().
+     *
+     * @param  Builder<StockMovement>  $query
+     */
+    public function scopeWithReference(Builder $query): void
+    {
+        $query->with(['reference' => fn (MorphTo $morphTo) => $morphTo->morphWith([ProductionOrderStep::class => ['productionOrder']])]);
     }
 
     /**

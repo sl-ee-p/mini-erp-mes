@@ -6,15 +6,18 @@ namespace Tests\Feature\Web;
 
 use App\Domain\Inventory\Actions\RecordStockMovement;
 use App\Domain\Inventory\Enums\StockMovementType;
+use App\Domain\Production\Actions\CompleteStep;
+use App\Domain\Production\Actions\StartStep;
 use App\Models\Material;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Tests\Feature\Domain\Production\ProductionTestHelpers;
 use Tests\TestCase;
 
 class CsvExportTest extends TestCase
 {
-    use RefreshDatabase;
+    use ProductionTestHelpers, RefreshDatabase;
 
     public function test_materials_export_follows_the_list_filters(): void
     {
@@ -47,6 +50,23 @@ class CsvExportTest extends TestCase
         // Text that a spreadsheet would execute as a formula is neutralised.
         $this->assertSame('\'=HYPERLINK("http://example.com")', $rows[2][7]);
         $this->assertSame($planner->name, $rows[2][9]);
+    }
+
+    public function test_ledger_names_the_production_order_and_step_that_consumed_material(): void
+    {
+        $planner = User::factory()->planner()->create();
+        $productionOrder = $this->releaseProductionOrder(quantity: 1);
+        $cutting = $productionOrder->steps[0];
+        app(StartStep::class)->execute($cutting, $planner);
+        app(CompleteStep::class)->execute($cutting, $planner);
+        $label = "{$productionOrder->number} · Cutting";
+
+        $rows = $this->rows($this->actingAs($planner)->get(route('stock-movements.export', ['type' => 'out']))->assertOk());
+
+        $this->assertCount(3, $rows); // header + one consumption per BOM material
+        $this->assertSame([$label], array_values(array_unique(array_column(array_slice($rows, 1), 8))));
+
+        $this->actingAs($planner)->get(route('stock-movements.index'))->assertOk()->assertSee($label);
     }
 
     public function test_guests_cannot_export(): void
