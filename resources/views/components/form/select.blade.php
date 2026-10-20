@@ -1,4 +1,4 @@
-@props(['name', 'label' => null, 'options' => [], 'value' => null, 'placeholder' => null])
+@props(['name', 'label' => null, 'options' => [], 'value' => null, 'placeholder' => null, 'help' => null])
 
 @php($id = $attributes->get('id', str_replace(['[', ']', '.'], '_', $name)))
 @php($selected = (string) old($name, $value instanceof \BackedEnum ? $value->value : $value))
@@ -19,6 +19,9 @@
             <option value="{{ $optionValue }}" @selected($selected === (string) $optionValue)>{{ $optionLabel }}</option>
         @endforeach
     </select>
+    @if ($help)
+        <p class="text-xs text-stone-500">{{ $help }}</p>
+    @endif
     @error($name)
         <p class="text-xs text-red-600">{{ $message }}</p>
     @enderror

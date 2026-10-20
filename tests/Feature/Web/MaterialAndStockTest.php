@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Web;
 
+use App\Domain\Inventory\Actions\RecordStockMovement;
 use App\Domain\Inventory\Enums\MaterialType;
+use App\Domain\Inventory\Enums\StockMovementType;
 use App\Domain\Inventory\Enums\UnitOfMeasure;
 use App\Domain\Sales\Actions\ConfirmSalesOrder;
+use App\Models\BomItem;
 use App\Models\Material;
 use App\Models\Product;
 use App\Models\SalesOrder;
@@ -62,6 +65,28 @@ class MaterialAndStockTest extends TestCase
         $this->assertSame('FG-KEEP', $material?->sku);
         $this->assertSame(UnitOfMeasure::Piece, $material?->unit);
         $this->assertSame(3.0, $material?->min_stock);
+    }
+
+    public function test_unit_is_fixed_once_stock_is_booked_or_the_material_is_in_a_bill_of_materials(): void
+    {
+        $oak = Material::factory()->unit(UnitOfMeasure::SquareMeter)->create(['sku' => 'RM-OAK-20']);
+        $fields = ['sku' => 'RM-OAK-20', 'name' => 'Oak panel', 'min_stock' => 0, 'unit_cost' => 48];
+
+        // Nothing booked yet: a wrong unit can still be corrected.
+        $this->actingAs($this->planner)->put(route('materials.update', $oak), [...$fields, 'unit' => 'm'])->assertSessionHasNoErrors();
+        $this->assertSame(UnitOfMeasure::Meter, $oak->fresh()?->unit);
+
+        app(RecordStockMovement::class)->execute($oak, StockMovementType::In, 64, 'Opening balance');
+
+        $this->actingAs($this->planner)->put(route('materials.update', $oak), [...$fields, 'unit' => 'pcs'])->assertSessionHasErrors('unit');
+        $this->assertSame(UnitOfMeasure::Meter, $oak->fresh()?->unit);
+        $this->actingAs($this->planner)->get(route('materials.edit', $oak))->assertOk()->assertSee('Fixed: stock has been booked');
+
+        $glue = BomItem::factory()->create(['material_id' => Material::factory()->unit(UnitOfMeasure::Kilogram)->create(['sku' => 'RM-GLUE'])])->material;
+
+        $this->actingAs($this->planner)
+            ->put(route('materials.update', $glue), ['sku' => 'RM-GLUE', 'name' => 'Glue', 'min_stock' => 0, 'unit_cost' => 6, 'unit' => 'l'])
+            ->assertSessionHasErrors('unit');
     }
 
     public function test_material_page_shows_movement_history(): void

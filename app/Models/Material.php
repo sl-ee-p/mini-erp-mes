@@ -62,6 +62,23 @@ class Material extends Model
     }
 
     /**
+     * Whether stock has been booked for the material or it is planned into products or production. Its unit then
+     * gives all those quantities their meaning and can no longer change.
+     */
+    public function isInUse(): bool
+    {
+        if (! $this->exists) {
+            return false;
+        }
+
+        if ($this->stockMovements()->exists() || BomItem::query()->where('material_id', $this->id)->exists()) {
+            return true;
+        }
+
+        return ProductionOrderMaterial::query()->where('material_id', $this->id)->exists();
+    }
+
+    /**
      * Quantity needed to get back to the minimum stock level.
      */
     public function shortage(): float

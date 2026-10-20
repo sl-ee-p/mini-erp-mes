@@ -1,4 +1,5 @@
 @php($isFinished = $material->exists && $material->type === App\Domain\Inventory\Enums\MaterialType::Finished)
+@php($unitLocked = $isFinished || $material->isInUse())
 
 @if ($isFinished)
     <p class="mb-4 rounded-md bg-violet-50 p-3 text-sm text-violet-800">
@@ -9,8 +10,9 @@
 <div class="grid gap-4 sm:grid-cols-2">
     <x-form.input name="sku" label="SKU" :value="$material->sku" required :readonly="$isFinished" />
     <x-form.input name="name" label="Name" :value="$material->name" required :readonly="$isFinished" />
-    <x-form.select name="unit" label="Unit of measure" :options="$units" :value="$material->unit" required :disabled="$isFinished" />
-    @if ($isFinished)
+    <x-form.select name="unit" label="Unit of measure" :options="$units" :value="$material->unit" required :disabled="$unitLocked"
+                   :help="$unitLocked && ! $isFinished ? 'Fixed: stock has been booked or the material is used in a bill of materials.' : null" />
+    @if ($unitLocked)
         <input type="hidden" name="unit" value="{{ $material->unit->value }}">
     @endif
     <x-form.input name="unit_cost" type="number" step="0.01" min="0" label="Unit cost (€)" :value="$material->unit_cost ?? 0" required />
