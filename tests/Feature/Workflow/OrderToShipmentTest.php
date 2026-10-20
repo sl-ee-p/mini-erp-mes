@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Workflow;
 
+use App\Domain\Inventory\Enums\UnitOfMeasure;
 use App\Domain\Production\Enums\ProductionOrderStatus;
 use App\Domain\Sales\Enums\SalesOrderStatus;
 use App\Jobs\GenerateSalesOrderPdf;
@@ -34,7 +35,7 @@ class OrderToShipmentTest extends TestCase
         $operator = User::factory()->operator()->create();
 
         // Planner sets up a product: 1.5 m² oak + 12 screws per unit, cut (consumes BOM) then assemble.
-        $oak = Material::factory()->stocked(20, minimum: 5)->create(['name' => 'Oak panel']);
+        $oak = Material::factory()->unit(UnitOfMeasure::SquareMeter)->stocked(20, minimum: 5)->create(['name' => 'Oak panel']);
         $screws = Material::factory()->stocked(100)->create(['name' => 'Screw']);
         $cutting = WorkCenter::factory()->create(['name' => 'Cutting']);
         $assembly = WorkCenter::factory()->create(['name' => 'Assembly']);

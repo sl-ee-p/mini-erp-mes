@@ -56,7 +56,8 @@ class ProductRequest extends FormRequest
     }
 
     /**
-     * The bill of materials is consumed once, so at most one routing step may be flagged.
+     * The bill of materials is consumed once, so at most one routing step may be flagged. Materials counted in
+     * pieces are consumed in whole pieces, like every other movement of them: 1.2 hinges per unit is a typo.
      *
      * @return array<int, callable(Validator): void>
      */
@@ -69,6 +70,22 @@ class ProductRequest extends FormRequest
 
                 if ($flagged->count() > 1) {
                     $validator->errors()->add('routing', 'Only one routing step can consume the bill of materials.');
+                }
+            },
+            function (Validator $validator): void {
+                $lines = array_filter((array) $this->input('bom', []), fn ($line): bool => is_array($line));
+                $countedInPieces = Material::query()
+                    ->whereKey(array_values(array_filter(array_column($lines, 'material_id'), is_numeric(...))))
+                    ->get(['id', 'unit'])
+                    ->filter(fn (Material $material): bool => $material->unit->isDiscrete())
+                    ->modelKeys();
+
+                foreach ($lines as $index => $line) {
+                    $quantity = $line['quantity'] ?? null;
+
+                    if (in_array((int) ($line['material_id'] ?? 0), $countedInPieces, true) && is_numeric($quantity) && floor((float) $quantity) != (float) $quantity) {
+                        $validator->errors()->add("bom.{$index}.quantity", 'Materials counted in pieces need a whole quantity per unit.');
+                    }
                 }
             },
         ];

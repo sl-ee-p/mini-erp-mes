@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Web;
 
+use App\Domain\Inventory\Enums\UnitOfMeasure;
 use App\Models\Material;
 use App\Models\Product;
 use App\Models\User;
@@ -17,7 +18,7 @@ class ProductManagementTest extends TestCase
 
     public function test_planner_creates_product_with_bom_and_routing(): void
     {
-        $oak = Material::factory()->create();
+        $oak = Material::factory()->unit(UnitOfMeasure::SquareMeter)->create();
         $workCenter = WorkCenter::factory()->create();
 
         $this->actingAs(User::factory()->planner()->create())
@@ -56,6 +57,28 @@ class ProductManagementTest extends TestCase
                 'routing' => [['work_center_id' => $workCenter->id, 'name' => 'Build', 'planned_minutes_per_unit' => 5]],
             ])
             ->assertSessionHasErrors(['bom.0.material_id', 'bom.1.material_id', 'bom.2.material_id']);
+    }
+
+    public function test_materials_counted_in_pieces_need_whole_bom_quantities(): void
+    {
+        $hinge = Material::factory()->unit(UnitOfMeasure::Piece)->create();
+        $oak = Material::factory()->unit(UnitOfMeasure::SquareMeter)->create();
+        $workCenter = WorkCenter::factory()->create();
+
+        $this->actingAs(User::factory()->planner()->create())
+            ->post(route('products.store'), [
+                'sku' => 'FG-W', 'name' => 'W', 'price' => 1,
+                'bom' => [
+                    ['material_id' => $hinge->id, 'quantity' => 1.5],
+                    ['material_id' => $oak->id, 'quantity' => 1.5],
+                    ['material_id' => Material::factory()->unit(UnitOfMeasure::Piece)->create()->id, 'quantity' => 4],
+                ],
+                'routing' => [['work_center_id' => $workCenter->id, 'name' => 'Build', 'planned_minutes_per_unit' => 5]],
+            ])
+            ->assertSessionHasErrors('bom.0.quantity')
+            ->assertSessionDoesntHaveErrors(['bom.1.quantity', 'bom.2.quantity']);
+
+        $this->assertDatabaseMissing('products', ['sku' => 'FG-W']);
     }
 
     public function test_only_one_step_may_consume_the_bill_of_materials(): void
