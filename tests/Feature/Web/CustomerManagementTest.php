@@ -93,4 +93,22 @@ class CustomerManagementTest extends TestCase
             ->assertOk()
             ->assertSeeInOrder(['Orders placed', '3', 'Open order value', '€ 250.50', 'Shipped to date', '€ 1,000.00']);
     }
+
+    public function test_deleting_a_customer_that_just_received_an_order_is_a_flash_error_not_a_crash(): void
+    {
+        $customer = Customer::factory()->create();
+
+        // Simulate an order being created between the "has orders" check and the delete.
+        Customer::deleting(function (Customer $deleting): void {
+            SalesOrder::factory()->create(['customer_id' => $deleting->id]);
+        });
+
+        $this->actingAs(User::factory()->sales()->create())
+            ->from(route('customers.show', $customer))
+            ->delete(route('customers.destroy', $customer))
+            ->assertRedirect(route('customers.show', $customer))
+            ->assertSessionHas('error', 'Customers with sales orders cannot be deleted.');
+
+        $this->assertModelExists($customer);
+    }
 }

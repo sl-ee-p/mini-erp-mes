@@ -168,4 +168,25 @@ class SalesOrderManagementTest extends TestCase
 
         $this->assertModelExists($order->customer);
     }
+
+    public function test_customer_deleted_during_order_creation_is_a_flash_error_not_a_crash(): void
+    {
+        $customer = Customer::factory()->create();
+        $product = Product::factory()->create();
+
+        // The customer disappears after the request has been validated.
+        SalesOrder::creating(fn () => Customer::query()->whereKey($customer->id)->delete());
+
+        $this->actingAs($this->sales)
+            ->from(route('sales-orders.create'))
+            ->post(route('sales-orders.store'), [
+                'customer_id' => $customer->id,
+                'due_date' => today()->addWeek()->toDateString(),
+                'lines' => [['product_id' => $product->id, 'quantity' => 1, 'unit_price' => '']],
+            ])
+            ->assertRedirect(route('sales-orders.create'))
+            ->assertSessionHas('error', 'The selected customer no longer exists.');
+
+        $this->assertDatabaseCount('sales_orders', 0);
+    }
 }

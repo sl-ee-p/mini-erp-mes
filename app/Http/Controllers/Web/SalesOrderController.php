@@ -13,6 +13,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -54,7 +55,16 @@ class SalesOrderController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $order = $createSalesOrder->execute($request->orderData(), $user);
+        try {
+            $order = $createSalesOrder->execute($request->orderData(), $user);
+        } catch (QueryException $exception) {
+            // The customer (or a product) was deleted after the request was validated.
+            if ($exception->getCode() !== '23000') {
+                throw $exception;
+            }
+
+            return back()->withInput()->with('error', 'The selected customer no longer exists.');
+        }
 
         return redirect()->route('sales-orders.show', $order)->with('success', "Sales order {$order->number} created as draft.");
     }

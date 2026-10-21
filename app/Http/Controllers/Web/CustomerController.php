@@ -8,6 +8,8 @@ use App\Domain\Sales\Enums\SalesOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customers\CustomerRequest;
 use App\Models\Customer;
+use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -85,7 +87,16 @@ class CustomerController extends Controller
             return back()->with('error', 'Customers with sales orders cannot be deleted.');
         }
 
-        $customer->delete();
+        try {
+            $customer->delete();
+        } catch (Exception $exception) {
+            // An order was created for this customer between the check above and the delete.
+            if (! $exception instanceof QueryException || $exception->getCode() !== '23000') {
+                throw $exception;
+            }
+
+            return back()->with('error', 'Customers with sales orders cannot be deleted.');
+        }
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted.');
     }
