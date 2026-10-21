@@ -7,8 +7,5 @@
     <x-form.input name="address" label="Address" :value="$customer->address" />
     <x-form.input name="city" label="City" :value="$customer->city" />
     <x-form.input name="country" label="Country (ISO code)" :value="$customer->country" required maxlength="2" />
-    <div class="space-y-1 sm:col-span-2">
-        <label for="notes" class="block text-sm font-medium text-stone-700">Notes</label>
-        <textarea id="notes" name="notes" rows="3" class="block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $customer->notes) }}</textarea>
-    </div>
+    <x-form.textarea name="notes" label="Notes" :value="$customer->notes" rows="3" class="sm:col-span-2" />
 </div>

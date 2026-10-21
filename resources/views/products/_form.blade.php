@@ -30,10 +30,7 @@
             <x-form.input name="name" label="Name" :value="$product->name" required />
             <x-form.input name="price" type="number" step="0.01" min="0" label="List price (€)" :value="$product->price" required />
             <x-form.checkbox name="is_active" label="Active (available on sales orders)" :checked="$product->is_active" class="self-end pb-2" />
-            <div class="space-y-1 sm:col-span-2">
-                <label for="description" class="block text-sm font-medium text-stone-700">Description</label>
-                <textarea id="description" name="description" rows="2" class="block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">{{ old('description', $product->description) }}</textarea>
-            </div>
+            <x-form.textarea name="description" label="Description" :value="$product->description" rows="2" class="sm:col-span-2" />
         </div>
     </x-card>
 

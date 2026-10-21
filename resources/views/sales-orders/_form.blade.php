@@ -19,10 +19,7 @@
         <div class="grid gap-4 sm:grid-cols-2">
             <x-form.select name="customer_id" label="Customer" :options="$customers" :value="$order->customer_id" placeholder="Select customer…" required />
             <x-form.input name="due_date" type="date" label="Requested delivery date" :value="$order->due_date?->format('Y-m-d')" required />
-            <div class="space-y-1 sm:col-span-2">
-                <label for="notes" class="block text-sm font-medium text-stone-700">Notes</label>
-                <textarea id="notes" name="notes" rows="2" class="block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">{{ old('notes', $order->notes) }}</textarea>
-            </div>
+            <x-form.textarea name="notes" label="Notes" :value="$order->notes" rows="2" class="sm:col-span-2" />
         </div>
     </x-card>
 
