@@ -53,7 +53,7 @@
         @if ($order->isLate())
             <x-badge color="red">Late — due {{ $order->due_date->diffForHumans() }}</x-badge>
         @endif
-        <span class="text-stone-600">Created by {{ $order->creator?->name ?? 'System' }} on {{ $order->created_at->format('d M Y') }}</span>
+        <span class="text-stone-600">Created by {{ $order->creator?->name ?? 'System' }} on {{ \App\Support\Format::dateTime($order->created_at, 'd M Y') }}</span>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-3">

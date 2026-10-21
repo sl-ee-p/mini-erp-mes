@@ -12,3 +12,4 @@ Short, dated notes explaining *why* the project is built the way it is. Format: 
 | [0006](0006-production-events-inside-the-transaction.md) | Production events run inside the step transaction | Accepted |
 | [0007](0007-bom-and-routing-snapshot.md) | Snapshot routing and BOM when a production order is released | Accepted |
 | [0008](0008-material-allocation-from-the-bom-snapshot.md) | Material allocation is derived from the BOM snapshot, not stored | Accepted |
+| [0009](0009-display-timezone.md) | Timestamps stored in UTC, rendered in a configurable display timezone | Accepted |

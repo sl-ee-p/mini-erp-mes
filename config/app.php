@@ -70,6 +70,12 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | Timezone used when rendering timestamps. Storage stays in UTC; document numbers and "late" logic are unaffected.
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'UTC'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------

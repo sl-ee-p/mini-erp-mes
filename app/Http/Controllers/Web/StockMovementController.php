@@ -14,6 +14,7 @@ use App\Models\Material;
 use App\Models\StockMovement;
 use App\Models\User;
 use App\Support\CsvExport;
+use App\Support\Format;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,7 +53,7 @@ class StockMovementController extends Controller
             $this->filtered($request)->withReference()->with(['material', 'user']),
             ['Date', 'SKU', 'Material', 'Type', 'Quantity', 'Unit', 'Balance after', 'Reason', 'Reference', 'By'],
             fn (StockMovement $movement): array => [
-                $movement->created_at->format('Y-m-d H:i:s'),
+                Format::dateTime($movement->created_at, 'Y-m-d H:i:s'),
                 $movement->material->sku,
                 $movement->material->name,
                 $movement->type->label(),

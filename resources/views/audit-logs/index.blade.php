@@ -20,7 +20,7 @@
         </x-slot:head>
         @forelse ($logs as $log)
             <tr class="align-top">
-                <td class="whitespace-nowrap px-4 py-3 text-stone-500">{{ $log->created_at->format('d M Y H:i:s') }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-stone-500">{{ \App\Support\Format::dateTime($log->created_at, 'd M Y H:i:s') }}</td>
                 <td class="px-4 py-3">{{ $log->user?->name ?? 'System' }}@if ($log->ip_address)<span class="block text-xs text-stone-500">{{ $log->ip_address }}</span>@endif</td>
                 <td class="px-4 py-3">
                     <x-badge :color="match ($log->event) { 'created' => 'emerald', 'deleted' => 'red', default => 'sky' }">{{ ucfirst($log->event) }}</x-badge>

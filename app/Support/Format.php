@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Domain\Inventory\Enums\UnitOfMeasure;
+use Carbon\CarbonInterface;
 
 /**
  * Display helpers shared by Blade views and PDFs.
@@ -21,6 +22,15 @@ final class Format
     public static function money(float|int|null $amount): string
     {
         return '€ '.number_format((float) $amount, 2, '.', ',');
+    }
+
+    /**
+     * Renders a stored (UTC) timestamp in the workshop's display timezone (`app.display_timezone`).
+     * Date-only attributes (due dates, order dates) must not go through here: they have no time to shift.
+     */
+    public static function dateTime(?CarbonInterface $moment, string $format = 'd M Y H:i'): ?string
+    {
+        return $moment?->copy()->setTimezone((string) config('app.display_timezone', 'UTC'))->format($format);
     }
 
     public static function minutes(float|int|null $minutes): string

@@ -2,7 +2,7 @@
 
 @forelse ($movements as $movement)
     <tr>
-        <td class="whitespace-nowrap px-4 py-3 text-stone-500">{{ $movement->created_at->format('d M Y H:i') }}</td>
+        <td class="whitespace-nowrap px-4 py-3 text-stone-500">{{ \App\Support\Format::dateTime($movement->created_at) }}</td>
         @if ($showMaterial ?? false)
             <td class="px-4 py-3"><a href="{{ route('materials.show', $movement->material) }}" class="font-medium text-brand-700 hover:underline">{{ $movement->material->name }}</a></td>
         @endif

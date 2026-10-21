@@ -88,6 +88,6 @@
         <p style="margin-top: 24px;"><span class="muted">Notes:</span> {{ $order->notes }}</p>
     @endif
 
-    <div class="footer">Oakline Woodworks is a fictional company. Document generated {{ now()->format('d M Y H:i') }}.</div>
+    <div class="footer">Oakline Woodworks is a fictional company. Document generated {{ \App\Support\Format::dateTime(now()) }}.</div>
 </body>
 </html>

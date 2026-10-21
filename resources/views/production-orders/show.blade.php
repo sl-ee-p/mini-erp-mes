@@ -88,7 +88,7 @@
                 @forelse ($productionOrder->steps->flatMap->timeLogs->sortByDesc('started_at') as $log)
                     <li class="flex justify-between gap-4 px-5 py-2">
                         <span>{{ $productionOrder->steps->firstWhere('id', $log->production_order_step_id)?->name }} · {{ $log->user->name }}</span>
-                        <span class="tabular-nums text-stone-500">{{ $log->started_at->format('d M H:i') }} – {{ $log->ended_at?->format('H:i') ?? 'running' }} ({{ Format::minutes(($log->seconds ?? 0) / 60) }})</span>
+                        <span class="tabular-nums text-stone-500">{{ \App\Support\Format::dateTime($log->started_at, 'd M H:i') }} – {{ \App\Support\Format::dateTime($log->ended_at, 'H:i') ?? 'running' }} ({{ Format::minutes(($log->seconds ?? 0) / 60) }})</span>
                     </li>
                 @empty
                     <li class="px-5 py-6 text-center text-stone-500">No work logged yet.</li>
