@@ -55,6 +55,23 @@ class MaterialRequirementsTest extends TestCase
         $this->assertTrue(app(MaterialRequirements::class)->allocated()->isEmpty());
     }
 
+    public function test_allocation_is_released_when_every_unit_is_scrapped_before_the_consuming_step(): void
+    {
+        $productionOrder = $this->releaseProductionOrder(quantity: 3);
+        $operator = User::factory()->operator()->create();
+        [$first, $second] = [$productionOrder->steps[0], $productionOrder->steps[1]];
+        $first->update(['consumes_materials' => false]);
+        $second->update(['consumes_materials' => true]);
+
+        $this->assertFalse(app(MaterialRequirements::class)->allocated()->isEmpty());
+
+        app(StartStep::class)->execute($first, $operator);
+        app(CompleteStep::class)->execute($first, $operator, scrapQty: 3);
+
+        $this->assertTrue(app(MaterialRequirements::class)->allocated()->isEmpty());
+        $this->assertSame(0, app(MaterialRequirements::class)->shortages()->count());
+    }
+
     public function test_cancelled_orders_do_not_allocate_material(): void
     {
         $productionOrder = $this->releaseProductionOrder();

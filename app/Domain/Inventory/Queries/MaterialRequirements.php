@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Inventory\Queries;
 
 use App\Domain\Production\Enums\ProductionOrderStatus;
+use App\Domain\Production\Enums\StepStatus;
 use App\Models\Material;
 use App\Models\ProductionOrderMaterial;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +15,8 @@ use Illuminate\Support\Collection;
 /**
  * Material still needed by released production: the bill-of-materials snapshot of every active production order
  * whose consuming step has not been completed yet. The BOM is backflushed in one go, so a line is either fully
- * outstanding (nothing consumed) or done.
+ * outstanding (nothing consumed) or done. Orders whose units have all been scrapped before the consuming step
+ * release their allocation, since that step can no longer receive anything.
  */
 class MaterialRequirements
 {
@@ -79,6 +81,12 @@ class MaterialRequirements
         return ProductionOrderMaterial::query()
             ->where('consumed_qty', 0)
             ->where('required_qty', '>', 0)
-            ->whereHas('productionOrder', fn (Builder $query) => $query->whereIn('status', ProductionOrderStatus::active()));
+            ->whereHas('productionOrder', fn (Builder $query) => $query
+                ->whereIn('status', ProductionOrderStatus::active())
+                // Once a completed step has no good units left, nothing reaches the consuming step any more
+                // (a step that did consume has consumed_qty > 0 and is filtered out above).
+                ->whereDoesntHave('steps', fn (Builder $query) => $query
+                    ->where('status', StepStatus::Completed)
+                    ->where('good_qty', 0)));
     }
 }
