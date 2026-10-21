@@ -30,6 +30,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable(['sku', 'name', 'type', 'unit', 'min_stock', 'unit_cost'])]
 class Material extends Model
 {
+    /**
+     * Largest value the `decimal(12, 3)` stock columns can hold (materials.stock_qty, stock_movements.quantity
+     * and balance_after). Keep in sync with the create_materials / create_stock_movements migrations.
+     */
+    public const MAX_STOCK = 999999999.999;
+
     /** @use HasFactory<MaterialFactory> */
     use Auditable, HasFactory;
 

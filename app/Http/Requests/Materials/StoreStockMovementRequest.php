@@ -6,6 +6,7 @@ namespace App\Http\Requests\Materials;
 
 use App\Domain\Inventory\Enums\StockMovementType;
 use App\Models\Material;
+use App\Support\Format;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,7 +33,7 @@ class StoreStockMovementRequest extends FormRequest
 
         return [
             'type' => ['required', Rule::enum(StockMovementType::class)],
-            'quantity' => ['required', 'numeric', $isAdjustment ? 'min:0' : 'gt:0', 'max:999999999'],
+            'quantity' => ['required', 'numeric', $isAdjustment ? 'min:0' : 'gt:0', 'max:'.Material::MAX_STOCK],
             'reason' => [Rule::requiredIf($this->input('type') !== StockMovementType::In->value), 'nullable', 'string', 'max:255'],
         ];
     }
@@ -48,6 +49,15 @@ class StoreStockMovementRequest extends FormRequest
 
                 if ($this->material()->unit->isDiscrete() && is_numeric($quantity) && floor((float) $quantity) != (float) $quantity) {
                     $validator->errors()->add('quantity', 'This material is counted in whole pieces.');
+                }
+
+                if (
+                    $this->input('type') === StockMovementType::In->value
+                    && is_numeric($quantity)
+                    && ! $validator->errors()->has('quantity')
+                    && round($this->material()->stock_qty + (float) $quantity, 3) > Material::MAX_STOCK
+                ) {
+                    $validator->errors()->add('quantity', 'The receipt would push the stock above the maximum of '.Format::quantity(Material::MAX_STOCK).'.');
                 }
             },
         ];

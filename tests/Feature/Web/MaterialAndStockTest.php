@@ -209,4 +209,28 @@ class MaterialAndStockTest extends TestCase
             ->assertSee('Released production needs 12 pcs more than is on hand.')
             ->assertSee($salesOrder->productionOrders()->sole()->number);
     }
+
+    public function test_receipt_that_would_overflow_the_stock_column_is_refused(): void
+    {
+        $material = Material::factory()->unit(UnitOfMeasure::Kilogram)->stocked(999999990)->create();
+        $url = route('materials.stock-movements.store', $material);
+
+        $this->actingAs($this->planner)
+            ->from(route('materials.show', $material))
+            ->post($url, ['type' => 'in', 'quantity' => 20])
+            ->assertRedirect(route('materials.show', $material))
+            ->assertSessionHasErrors('quantity');
+
+        $this->actingAs($this->planner)
+            ->post($url, ['type' => 'in', 'quantity' => 1000000000])
+            ->assertSessionHasErrors('quantity');
+
+        $this->assertSame(999999990.0, $material->fresh()?->stock_qty);
+
+        $this->actingAs($this->planner)
+            ->post($url, ['type' => 'in', 'quantity' => 9.999])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(Material::MAX_STOCK, $material->fresh()?->stock_qty);
+    }
 }
