@@ -27,4 +27,12 @@ class FormatTest extends TestCase
         $this->assertSame('45m', Format::minutes(45));
         $this->assertSame('2h 05m', Format::minutes(125));
     }
+
+    public function test_duration_keeps_counting_past_24_hours(): void
+    {
+        $this->assertSame('00:00:00', Format::duration(0));
+        $this->assertSame('00:00:59', Format::duration(59));
+        $this->assertSame('01:00:00', Format::duration(3600));
+        $this->assertSame('27:05:10', Format::duration(97510));
+    }
 }

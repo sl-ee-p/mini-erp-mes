@@ -26,7 +26,7 @@
                         <p class="text-3xl font-bold">{{ $myStep->name }}</p>
                         <p class="mt-1 text-lg text-emerald-50">{{ $myStep->productionOrder->number }} · {{ $myStep->input_qty }} × {{ $myStep->productionOrder->product->name }}</p>
                     </div>
-                    <p class="font-mono text-5xl font-bold tabular-nums" x-data="stepTimer({{ $myStep->elapsedSeconds() }}, true)" x-text="display">{{ gmdate('H:i:s', $myStep->elapsedSeconds()) }}</p>
+                    <p class="font-mono text-5xl font-bold tabular-nums" x-data="stepTimer({{ $myStep->elapsedSeconds() }}, true)" x-text="display">{{ \App\Support\Format::duration($myStep->elapsedSeconds()) }}</p>
                 </div>
                 <div class="mt-5 flex flex-wrap items-center gap-3">
                     @include('production-orders._step-actions', ['step' => $myStep, 'size' => 'xl', 'idPrefix' => 'current-scrap'])
@@ -65,7 +65,7 @@
                             </div>
                             <div>
                                 <dt class="text-xs uppercase text-stone-500">Time (planned {{ Format::minutes($step->planned_minutes) }})</dt>
-                                <dd class="font-mono font-semibold tabular-nums" x-data="stepTimer({{ $step->elapsedSeconds() }}, {{ $step->status === StepStatus::Running ? 'true' : 'false' }})" x-text="display">{{ gmdate('H:i:s', $step->elapsedSeconds()) }}</dd>
+                                <dd class="font-mono font-semibold tabular-nums" x-data="stepTimer({{ $step->elapsedSeconds() }}, {{ $step->status === StepStatus::Running ? 'true' : 'false' }})" x-text="display">{{ \App\Support\Format::duration($step->elapsedSeconds()) }}</dd>
                             </div>
                             @if ($step->status !== StepStatus::Pending && $step->operator)
                                 <div class="col-span-2 text-sm text-stone-500">

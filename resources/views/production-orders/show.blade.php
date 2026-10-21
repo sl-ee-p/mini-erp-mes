@@ -48,7 +48,7 @@
                 <td class="px-4 py-3 text-right tabular-nums">{{ $step->good_qty ?? '—' }}</td>
                 <td @class(['px-4 py-3 text-right tabular-nums', 'text-red-600' => $step->scrap_qty > 0])>{{ $step->scrap_qty ?? '—' }}</td>
                 <td class="px-4 py-3 text-right tabular-nums text-stone-500">{{ Format::minutes($step->planned_minutes) }}</td>
-                <td class="px-4 py-3 text-right tabular-nums" x-data="stepTimer({{ $step->elapsedSeconds() }}, {{ $step->status === StepStatus::Running ? 'true' : 'false' }})" x-text="display">{{ gmdate('H:i:s', $step->elapsedSeconds()) }}</td>
+                <td class="px-4 py-3 text-right tabular-nums" x-data="stepTimer({{ $step->elapsedSeconds() }}, {{ $step->status === StepStatus::Running ? 'true' : 'false' }})" x-text="display">{{ \App\Support\Format::duration($step->elapsedSeconds()) }}</td>
                 <td class="px-4 py-3 text-stone-600">{{ $step->operator?->name ?? '—' }}</td>
                 @can('use-shop-floor')
                     <td class="px-4 py-3">

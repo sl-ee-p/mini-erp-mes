@@ -29,4 +29,14 @@ final class Format
 
         return $minutes >= 60 ? sprintf('%dh %02dm', intdiv($minutes, 60), $minutes % 60) : "{$minutes}m";
     }
+
+    /**
+     * Clock-style duration that keeps counting past 24 hours (unlike gmdate), e.g. 97510 -> 27:05:10.
+     */
+    public static function duration(int $seconds): string
+    {
+        $seconds = max(0, $seconds);
+
+        return sprintf('%02d:%02d:%02d', intdiv($seconds, 3600), intdiv($seconds % 3600, 60), $seconds % 60);
+    }
 }
