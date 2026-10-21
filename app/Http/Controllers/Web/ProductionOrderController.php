@@ -19,9 +19,9 @@ class ProductionOrderController extends Controller
         $productionOrders = ProductionOrder::query()
             ->with(['product', 'salesOrder', 'steps:id,production_order_id,status,actual_seconds'])
             ->when($request->string('search')->toString(), fn ($query, string $term) => $query->where(fn ($query) => $query
-                ->where('number', 'like', "%{$term}%")
+                ->whereContains('number', $term)
                 ->orWhereHas('product', fn ($query) => $query->search($term))
-                ->orWhereHas('salesOrder', fn ($query) => $query->where('number', 'like', "%{$term}%"))))
+                ->orWhereHas('salesOrder', fn ($query) => $query->whereContains('number', $term))))
             ->when($request->enum('status', ProductionOrderStatus::class), fn ($query, ProductionOrderStatus $status) => $query->where('status', $status))
             ->when($request->boolean('late'), fn ($query) => $query->late())
             ->orderByRaw('case when status in (?, ?) then 0 else 1 end', [ProductionOrderStatus::InProgress->value, ProductionOrderStatus::Planned->value])

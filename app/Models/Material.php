@@ -100,8 +100,8 @@ class Material extends Model
     public function scopeSearch(Builder $query, ?string $term): void
     {
         $query->when($term, fn (Builder $query, string $term) => $query->where(fn (Builder $query) => $query
-            ->where('name', 'like', "%{$term}%")
-            ->orWhere('sku', 'like', "%{$term}%")));
+            ->whereContains('name', $term)
+            ->orWhereContains('sku', $term)));
     }
 
     /**

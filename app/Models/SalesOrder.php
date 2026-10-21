@@ -134,8 +134,8 @@ class SalesOrder extends Model
     public function scopeSearch(Builder $query, ?string $term): void
     {
         $query->when($term, fn (Builder $query, string $term) => $query->where(fn (Builder $query) => $query
-            ->where('number', 'like', "%{$term}%")
-            ->orWhereHas('customer', fn (Builder $query) => $query->where('name', 'like', "%{$term}%"))));
+            ->whereContains('number', $term)
+            ->orWhereHas('customer', fn (Builder $query) => $query->whereContains('name', $term))));
     }
 
     /**

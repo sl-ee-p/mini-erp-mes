@@ -24,6 +24,7 @@ use App\Models\ProductionOrder;
 use App\Models\ProductionOrderStep;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\Support\Like;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
@@ -56,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
             'production_order' => ProductionOrder::class,
             'production_order_step' => ProductionOrderStep::class,
         ]);
+
+        Like::registerMacros();
 
         $this->defineGates();
         $this->registerDomainListeners();

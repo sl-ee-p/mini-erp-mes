@@ -44,9 +44,9 @@ class Customer extends Model
     public function scopeSearch(Builder $query, ?string $term): void
     {
         $query->when($term, fn (Builder $query, string $term) => $query->where(fn (Builder $query) => $query
-            ->where('name', 'like', "%{$term}%")
-            ->orWhere('code', 'like', "%{$term}%")
-            ->orWhere('email', 'like', "%{$term}%")
-            ->orWhere('city', 'like', "%{$term}%")));
+            ->whereContains('name', $term)
+            ->orWhereContains('code', $term)
+            ->orWhereContains('email', $term)
+            ->orWhereContains('city', $term)));
     }
 }

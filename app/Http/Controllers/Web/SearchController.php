@@ -51,7 +51,7 @@ class SearchController extends Controller
                     ])
                 : null,
             'Production orders' => ProductionOrder::query()->with(['product', 'salesOrder'])
-                ->where(fn (Builder $query) => $query->where('number', 'like', "%{$term}%")->orWhereHas('product', fn (Builder $query) => $query->search($term)))
+                ->where(fn (Builder $query) => $query->whereHas('product', fn (Builder $query) => $query->search($term))->orWhereContains('number', $term))
                 ->latest('id')->limit(self::PER_GROUP)->get()
                 ->map(fn (ProductionOrder $order): array => [
                     'url' => route('production-orders.show', $order),

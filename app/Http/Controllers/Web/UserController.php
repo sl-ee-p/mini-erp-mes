@@ -21,7 +21,7 @@ class UserController extends Controller
 
         $users = User::query()
             ->when($request->string('search')->toString(), fn ($query, string $search) => $query
-                ->where(fn ($query) => $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
+                ->where(fn ($query) => $query->whereContains('name', $search)->orWhereContains('email', $search)))
             ->when($request->enum('role', UserRole::class), fn ($query, UserRole $role) => $query->where('role', $role))
             ->orderBy('name')
             ->paginate(15)
